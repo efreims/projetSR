@@ -1,0 +1,15 @@
+/*BASE DE DONNEES UTILISATEURS*/
+
+
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT,
+    email TEXT,
+    password TEXT,
+    admin BOOL,
+    city TEXT
+);
+
+ 
+INSERT INTO users (name, email, password, admin, city) VALUES ('pasadmin', 'user@email.com', 'password', 0, 'Paris');
+INSERT INTO users (name, email, password, admin, city) VALUES ('admin', 'admin@email.com', 'password', 1, 'Paris');
