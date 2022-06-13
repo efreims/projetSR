@@ -1,10 +1,46 @@
+
 //Integration des composants
 const Home = window.httpVueLoader('./components/Home.vue')
+const Accueil = window.httpVueLoader('./components/Accueil.vue')
+var refreshToken;
 
+axios.interceptors.response.use((response) => {
+  return response
+}, async function (error) {
+  const originalRequest = error.config;
+  if (error.config.url != "/refreshToken" && error.response.status === 401 && !originalRequest._retry) {
+    originalRequest._retry = true;
+    const res = await axios.get('/api/refreshToken')
+      refreshToken = res.data.refresh
+      console.log('refresh' + refreshToken)
+    if (refreshToken && refreshToken != "") {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${refreshToken}`;
+      console.log('refreshToken');
+      await axios.post('/api/refreshToken').then((response) => {
+        // TODO: mettre à jour l'accessToken dans le localStorage
+        console.log('efegeege')
+        originalRequest.headers['Authorization'] = `Bearer ${response.data.accessToken}`;
+        axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.accessToken}`;
+      }).catch((err) => {
+        console.log(err.response.status);
+        refreshToken = null;
+        axios.post('/api/retourLogin')
+        window.location.href=('/')
+      });
+      return axios(originalRequest);
+    }
+    else{
+      axios.post('/api/retourLogin')
+        window.location.href=('/')
+    }
+  }
+  return Promise.reject(error);
+});
 
 
 const routes = [
   {path: '/', name:'home', component: Home  },
+  {path: '/accueil', name:'accueil', component: Accueil  },
 ]
 
 const router = new VueRouter({
@@ -17,17 +53,54 @@ var app = new Vue(
   el: '#app',
   data: 
   {
-    
+    resultlogin:0,
   },
   components: 
   {
   },
   async mounted () 
   {
+      const res = await axios.get('api/retourLogin')
+      if (res.data.status==false){
+        console.log('111111')
+        this.verif()
+      }
+
     
   },
   methods: 
   {
-    
+   
+    async login(Login){
+      console.log(Login.email)
+      console.log(Login.password)
+      const res = await axios.post('/api/login', Login)
+      if (res.data.status==true){
+        axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.access}`;
+        refreshToken = res.data.refresh
+        this.resultlogin = 1;
+        this.$router.push('/accueil');
+      }
+      
+    },
+    async verif(){
+  
+    const res = await axios.get('/api/verif')
+    if (res.data.status==false){
+      this.$router.push('/')
+    }
+    else{
+      axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.access}`;
+      refreshToken = res.data.refresh
+      this.resultlogin = 1
+    }
+    },
+    async deconnexion(){
+      const res = await axios.get('api/deco')
+      console.log(res.data.status)
+      this.$router.push('/');
+      this.resultlogin = 0
+    },
+  
   }
 })

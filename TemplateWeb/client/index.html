@@ -16,10 +16,14 @@
   <body>
     <div id="app">
         <router-link to='/'></router-link>
-      
+        <button v-if="resultlogin==1" @click="deconnexion">Deconnexion</button>
       </header>
       <main>
-        <router-view>
+        <router-view 
+        :resultlogin="resultlogin"
+        @login-user="login"
+        @verif-con="verif"
+        >
         </router-view>
       </main>
     </div>
