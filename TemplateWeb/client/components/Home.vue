@@ -9,6 +9,8 @@
         <form v-if="log==false" @submit.prevent="inscription">
             <input type="txt" placeholder="email" v-model="email">
             <input type="password" placeholder="mot de passe" v-model="password">
+            <input type="txt" placeholder="name" v-model="name">
+            <input type="password" placeholder="city" v-model="city">
             <button>Inscritpion</button>
         </form>
         <button @click="changeform(true)">Log in</button>
@@ -32,7 +34,7 @@
                 this.$emit("login-user",{email: this.email,password : this.password})
             },
             inscription(){
-                this.$emit("sign-user",{email: this.email,password : this.password})
+                this.$emit("sign-user",{email: this.email,password : this.password,name:this.name,city:this.city})
             },
             changeform(status){
                 this.log = status

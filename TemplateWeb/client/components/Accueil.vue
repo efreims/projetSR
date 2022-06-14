@@ -2,7 +2,7 @@
     <div>
         Page réservé aux membres connectés
         {{message}}
-    <div>
+    </div>
 </template>
 
 <script>
@@ -10,7 +10,6 @@
         name : "Accueil",
         props: {
             resultlogin:Number,
-            message:String
         },
         data(){
             return{

@@ -5,6 +5,23 @@ const jwt = require('jsonwebtoken')
 // Création du diskStorage de multer, il permet de définir notre configuration d'upload
 // /!\ Créez les dossiers de destination au cas où avant l'upload
 const multer = require('multer')
+const {Sequelize} = require('sequelize');
+const sequelize = new Sequelize("bddvigenere","root","Fbq6dwab", //Veuillez mettre le mot de passe de la base de donnée
+{
+  dialect: "mysql",
+  host: "localhost",
+  port: 3306 // Changer le port si vous utilisez un autre port que 3306
+
+});
+try 
+{ 
+  sequelize.authenticate();
+  console.log('Connected to MySql database!');
+}
+catch (error)
+{
+  console.error('Unable to connect', error);
+};
 //Permet de générer les token pour le JWT
 require('dotenv').config(); //Récupère les token dans le fichier caché .env
 function generateAcessToken(user){
@@ -36,7 +53,6 @@ function autoToken(req,res, next){
   })
 }
 
-const {Sequelize} = require('sequelize');
 const { status } = require('express/lib/response');
 const res = require('express/lib/response');
 const req = require('express/lib/request')
@@ -108,11 +124,21 @@ router.get('/deco',(req,res) => {
 router.post('/login', (req,res) => {
   const email = req.body.email
   const password = req.body.password
-  console.log(email)
-  console.log(password)
-  if(email=="admin@admin" && password=="admin"){
-    const accessToken = generateAcessToken({email : email,password:this.password})
-    const refreshToken = generateRefreshToken({email : email,password:this.password})
+  sequelize.query(`SELECT * FROM users WHERE email = '${email}'`)
+  .then(result => {
+    if (result[0].length === 0) 
+    {
+      res.json({
+        status: false,
+        message: 'User not found'
+      })
+    } 
+    else 
+    {
+      bcrypt.compare(password,result[0][0].password, function(err,result2) {
+        if (result2){
+          const accessToken = generateAcessToken({email : email,password:this.password})
+        const refreshToken = generateRefreshToken({email : email,password:this.password})
     res.cookie('log',accessToken,{
       httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
       secure: true, //Uniquement sur https
@@ -122,10 +148,18 @@ router.post('/login', (req,res) => {
       secure: true, //Uniquement sur https
     })
     res.json({message:"connected",status:true,access : accessToken,refresh : refreshToken})
-  }
-  else {
-    res.json({message:"not connected"})
-  }
+  
+        }
+        else{
+          res.json({
+            status: false,
+            message: 'Wrong password'
+          })
+        }
+      })
+    }
+  })
+
 })
 
 router.post('/refreshToken', (req, res) => {
@@ -192,6 +226,8 @@ router.get('/retourLogin', (req,res) => {
 router.post('/sign', (req,res) => {
   const email = req.body.email
   const password = req.body.password
+  const city = req.body.city
+  const name = req.body.name
   bcrypt.hash(password, 10, (err, hash) => {
     if (err) {
       return res.status(500).json({
@@ -199,21 +235,35 @@ router.post('/sign', (req,res) => {
         status: false
       })
     }
+    else {
+      sequelize.query(`select * from users where email = '${email}'`).then(function(result) {
+        if (result[0].length > 0) {
+          return res.status(200).json({
+            error: "L'adresse mail est déjà utilisée",
+            status: false
+          })
+        } 
+        else {
+          sequelize.query(`insert into users(name, email ,password ,admin,city) values ('${name}','${email}','${hash}','0','${city}')`).then(function(result) {
+          const accessToken = generateAcessToken({email : email,password:this.password})
+          const refreshToken = generateRefreshToken({email : email,password:this.password})
+          res.cookie('log',accessToken,{
+            httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
+            secure: true, //Uniquement sur https
+          })
+          res.cookie('refresh',refreshToken,{
+               httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
+               secure: true, //Uniquement sur https
+          })
+         res.json({message:"connected",status:true,access : accessToken,refresh : refreshToken})
+  
+          })
+        }
+      })
+    }
     console.log(hash) 
   })
-  console.log(email)
-  console.log(password)
-  const accessToken = generateAcessToken({email : email,password:this.password})
-  const refreshToken = generateRefreshToken({email : email,password:this.password})
-  res.cookie('log',accessToken,{
-    httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
-    secure: true, //Uniquement sur https
-  })
-  res.cookie('refresh',refreshToken,{
-  httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
-  secure: true, //Uniquement sur https
-  })
-  res.json({message:"connected",status:true,access : accessToken,refresh : refreshToken})
+  
   
 
 })
