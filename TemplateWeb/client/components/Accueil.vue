@@ -1,6 +1,7 @@
 <template>
     <div>
         Page réservé aux membres connectés
+        {{message}}
     <div>
 </template>
 
@@ -9,6 +10,7 @@
         name : "Accueil",
         props: {
             resultlogin:Number,
+            message:String
         },
         data(){
             return{

@@ -62,7 +62,6 @@ var app = new Vue(
   {
       const res = await axios.get('api/retourLogin')
       if (res.data.status==false){
-        console.log('111111')
         this.verif()
       }
 
@@ -72,8 +71,6 @@ var app = new Vue(
   {
    
     async login(Login){
-      console.log(Login.email)
-      console.log(Login.password)
       const res = await axios.post('/api/login', Login)
       if (res.data.status==true){
         axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.access}`;
@@ -101,6 +98,16 @@ var app = new Vue(
       this.$router.push('/');
       this.resultlogin = 0
     },
+    async sign(Sign){
+      console.log(Sign)
+      const res = await axios.post('/api/sign', Sign)
+      if (res.data.status==true){
+        axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.access}`;
+        refreshToken = res.data.refresh
+        this.resultlogin = 1;
+        this.$router.push('/accueil');
+      }
+    }
   
   }
 })
