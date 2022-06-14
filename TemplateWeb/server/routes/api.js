@@ -245,30 +245,32 @@ router.post('/sign', (req,res) => {
         } 
         else {
           const spawner = require('child_process').spawn
-          const python_process = spawner('python', ['./generateKeys.py'])
+          const python_process = spawner('python', ['D:/EFREI/MasterCamp/Projet/projetSR/TemplateWeb/server/routes/generateKeys.py']) // C'est la sauce faut mettre le path global sinon NOOT NOOT
           python_process.stdout.on('data',(data) =>{
             console.log('ANKULAY')
-            console.log('Keys created :', JSON.parse(data.toString()))
+            console.log('Keys created :', data.toString())
+
+            sequelize.query(`insert into users(name, email ,password ,admin,city,privatekey) values ('${name}','${email}','${hash}','0','${city}','${data.toString()}')`).then(function(result) {
+              const accessToken = generateAcessToken({email : email,password:this.password})
+              const refreshToken = generateRefreshToken({email : email,password:this.password})
+              
+    
+              res.cookie('log',accessToken,{
+                httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
+                secure: true, //Uniquement sur https
+              })
+              res.cookie('refresh',refreshToken,{
+                   httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
+                   secure: true, //Uniquement sur https
+              })
+             res.json({message:"connected",status:true,access : accessToken,refresh : refreshToken})
+      
+              })
           })
           python_process.stderr.on('data',(data) =>{
             console.error('ERREUR : ', data.toString())
           })
-          sequelize.query(`insert into users(name, email ,password ,admin,city) values ('${name}','${email}','${hash}','0','${city}')`).then(function(result) {
-          const accessToken = generateAcessToken({email : email,password:this.password})
-          const refreshToken = generateRefreshToken({email : email,password:this.password})
           
-
-          res.cookie('log',accessToken,{
-            httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
-            secure: true, //Uniquement sur https
-          })
-          res.cookie('refresh',refreshToken,{
-               httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
-               secure: true, //Uniquement sur https
-          })
-         res.json({message:"connected",status:true,access : accessToken,refresh : refreshToken})
-  
-          })
         }
       })
     }
