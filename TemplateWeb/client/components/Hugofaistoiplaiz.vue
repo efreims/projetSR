@@ -1,7 +1,7 @@
 <template>
     <div>
         Page réservé aux membres connectés
-    <div>
+    </div>
 </template>
 
 <script>
