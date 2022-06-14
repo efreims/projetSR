@@ -6,7 +6,7 @@ const jwt = require('jsonwebtoken')
 // /!\ Créez les dossiers de destination au cas où avant l'upload
 const multer = require('multer')
 const {Sequelize} = require('sequelize');
-const sequelize = new Sequelize("bddvigenere","root","Fbq6dwab", //Veuillez mettre le mot de passe de la base de donnée
+const sequelize = new Sequelize("bddvigenere","root","Hoopiangel61", //Veuillez mettre le mot de passe de la base de donnée
 {
   dialect: "mysql",
   host: "localhost",
@@ -245,9 +245,13 @@ router.post('/sign', (req,res) => {
         } 
         else {
           const spawner = require('child_process').spawn
-          const python_process = spawner('python', ['../../../AlgoPy/generateKeys.py'])
+          const python_process = spawner('python', ['./generateKeys.py'])
           python_process.stdout.on('data',(data) =>{
+            console.log('ANKULAY')
             console.log('Keys created :', JSON.parse(data.toString()))
+          })
+          python_process.stderr.on('data',(data) =>{
+            console.error('ERREUR : ', data.toString())
           })
           sequelize.query(`insert into users(name, email ,password ,admin,city) values ('${name}','${email}','${hash}','0','${city}')`).then(function(result) {
           const accessToken = generateAcessToken({email : email,password:this.password})
