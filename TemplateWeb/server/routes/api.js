@@ -244,9 +244,16 @@ router.post('/sign', (req,res) => {
           })
         } 
         else {
+          const spawner = require('child_process').spawn
+          const python_process = spawner('python', ['./AlgoPy/generateKeys.py'])
+          python_process.stdout.on('data',(data) =>{
+            console.log('Keys created :', JSON.parse(data.toString()))
+          })
           sequelize.query(`insert into users(name, email ,password ,admin,city) values ('${name}','${email}','${hash}','0','${city}')`).then(function(result) {
           const accessToken = generateAcessToken({email : email,password:this.password})
           const refreshToken = generateRefreshToken({email : email,password:this.password})
+          
+
           res.cookie('log',accessToken,{
             httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
             secure: true, //Uniquement sur https
