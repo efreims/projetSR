@@ -6,29 +6,22 @@ import random
 import math
 
 from GenerateHugePrimeNumber import generate_prime_number
+from GenerateHugePrimeNumber import rabin_miller_test
 
-
-def is_prime(n):
-    if n == 2:
-        return True
-    if n < 2 or n % 2 == 0:
-        return False
-    for i in range(3, int(math.sqrt(n) + 1), 2):
-        if n % i == 0:
-            return False
-    return True
-
-
-# def generate_prime(n):
-#     while True:
-#         p = random.randrange(n)
-#         if is_prime(p):
-#             return p
+# def is_prime(n):
+#     if n == 2:
+#         return True
+#     if n < 2 or n % 2 == 0:
+#         return False
+#     for i in range(3, int(math.sqrt(n) + 1), 2):
+#         if n % i == 0:
+#             return False
+#     return True
 
 
 
 def generate_keypair(p, q):
-    if not (is_prime(p) and is_prime(q)):
+    if not (rabin_miller_test(p,7) and rabin_miller_test(q,7)):
         raise ValueError('Both numbers must be prime.')
     elif p == q:
         raise ValueError('p and q cannot be equal')
@@ -86,7 +79,7 @@ if __name__ == '__main__':
     print('Your public key is', public)
     print('Your private key is', private)
 
-    message = 'jJ effectue un tesst de maniere adaptee'
+    message = 'j effectue un tesst de maniere adaptee'
     print('\nEncrypting your message now . . .\n')
     encrypted_msg = encrypt(public, message)
     print('Your encrypted message is:', encrypted_msg)
