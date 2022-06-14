@@ -1,8 +1,11 @@
+# Merge Hugo et Arnaud
 # implement rsa algorithm in python
 
 
 import random
 import math
+
+from GenerateHugePrimeNumber import generate_prime_number
 
 
 def is_prime(n):
@@ -16,11 +19,12 @@ def is_prime(n):
     return True
 
 
-def generate_prime(n):
-    while True:
-        p = random.randrange(n)
-        if is_prime(p):
-            return p
+# def generate_prime(n):
+#     while True:
+#         p = random.randrange(n)
+#         if is_prime(p):
+#             return p
+
 
 
 def generate_keypair(p, q):
@@ -69,8 +73,8 @@ def multiplicative_inverse(a, b):
 
 
 if __name__ == '__main__':
-    p = generate_prime(100)
-    q = generate_prime(100)
+    p = generate_prime_number(200)
+    q = generate_prime_number(200)
     print('p =', p)
     print('q =', q)
     print('p*q =', p * q)
