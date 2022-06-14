@@ -2,7 +2,7 @@
 
 
 CREATE TABLE users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
     name TEXT,
     email TEXT,
     password TEXT,
@@ -13,3 +13,4 @@ CREATE TABLE users (
  
 INSERT INTO users (name, email, password, admin, city) VALUES ('pasadmin', 'user@email.com', 'password', 0, 'Paris');
 INSERT INTO users (name, email, password, admin, city) VALUES ('admin', 'admin@email.com', 'password', 1, 'Paris');
+
