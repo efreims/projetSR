@@ -1,16 +1,20 @@
 /*BASE DE DONNEES UTILISATEURS*/
 
 
+use bddvigenere;
+
+
 CREATE TABLE users (
     id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
     name TEXT,
     email TEXT,
     password TEXT,
     admin BOOL,
-    city TEXT
+    city TEXT,
+    privatekey INT
 );
 
  
-INSERT INTO users (name, email, password, admin, city) VALUES ('pasadmin', 'user@email.com', 'password', 0, 'Paris');
-INSERT INTO users (name, email, password, admin, city) VALUES ('admin', 'admin@email.com', 'password', 1, 'Paris');
+INSERT INTO users (name, email, password, admin, city, privatecrypt) VALUES ('pasadmin', 'user@email.com', 'password', 0, 'Paris',1);
+INSERT INTO users (name, email, password, admin, city, privatecrypt) VALUES ('admin', 'admin@email.com', 'password', 1, 'Paris',1);
 
