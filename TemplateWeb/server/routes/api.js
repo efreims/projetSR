@@ -189,4 +189,33 @@ router.get('/retourLogin', (req,res) => {
   }
 })
 
+router.post('/sign', (req,res) => {
+  const email = req.body.email
+  const password = req.body.password
+  bcrypt.hash(password, 10, (err, hash) => {
+    if (err) {
+      return res.status(500).json({
+        error: err,
+        status: false
+      })
+    }
+    console.log(hash) 
+  })
+  console.log(email)
+  console.log(password)
+  const accessToken = generateAcessToken({email : email,password:this.password})
+  const refreshToken = generateRefreshToken({email : email,password:this.password})
+  res.cookie('log',accessToken,{
+    httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
+    secure: true, //Uniquement sur https
+  })
+  res.cookie('refresh',refreshToken,{
+  httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
+  secure: true, //Uniquement sur https
+  })
+  res.json({message:"connected",status:true,access : accessToken,refresh : refreshToken})
+  
+
+})
+
 module.exports = router

@@ -66,8 +66,8 @@ def multiplicative_inverse(a, b):
 
 
 if __name__ == '__main__':
-    p = generate_prime_number(200)
-    q = generate_prime_number(200)
+    p = generate_prime_number(512)
+    q = generate_prime_number(512)
     print('p =', p)
     print('q =', q)
     print('p*q =', p * q)
