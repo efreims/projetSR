@@ -245,7 +245,7 @@ router.post('/sign', (req,res) => {
         } 
         else {
           const spawner = require('child_process').spawn
-          const python_process = spawner('python', ['./AlgoPy/generateKeys.py'])
+          const python_process = spawner('python', ['../../../AlgoPy/generateKeys.py'])
           python_process.stdout.on('data',(data) =>{
             console.log('Keys created :', JSON.parse(data.toString()))
           })
