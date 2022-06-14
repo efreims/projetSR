@@ -79,7 +79,7 @@ if __name__ == '__main__':
     print('Your public key is', public)
     print('Your private key is', private)
 
-    message = 'j effectue un tesst de maniere adaptee'
+    message = 'ANKULAY'
     print('\nEncrypting your message now . . .\n')
     encrypted_msg = encrypt(public, message)
     print('Your encrypted message is:', encrypted_msg)
