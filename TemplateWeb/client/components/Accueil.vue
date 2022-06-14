@@ -2,7 +2,7 @@
     <div>
         Page réservé aux membres connectés
         {{message}}
-    <div>
+    </div>
 </template>
 
 <script>
