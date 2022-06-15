@@ -49,7 +49,7 @@ join users sender on sender.userId = message.senderId
 join users receiver on receiver.userId = message.receiverId;
 
 create view ciphertextForSender as
-SELECT ciphertextReturn, messageDate, sender.privatekey, receiver.publickey, message.receiverId, message.senderId from message
+SELECT ciphertextReturn, messageDate, sender.privatekey, sender.publickey, message.receiverId, message.senderId from message
 join users sender on sender.userId = message.senderId
 join users receiver on receiver.userId = message.receiverId;
 
