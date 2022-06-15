@@ -25,6 +25,8 @@
             return{
                 email:"",
                 password:"",
+                name:"",
+                city:"",
                 log:false,
             }
         },

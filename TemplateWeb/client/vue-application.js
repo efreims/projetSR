@@ -2,6 +2,7 @@
 //Integration des composants
 const Home = window.httpVueLoader('./components/Home.vue')
 const Accueil = window.httpVueLoader('./components/Accueil.vue')
+const Conversation = window.httpVueLoader('./components/Conversation.vue')
 var refreshToken;
 
 axios.interceptors.response.use((response) => {
@@ -54,16 +55,19 @@ var app = new Vue(
   data: 
   {
     resultlogin:0,
+    listmessage:[]
   },
   components: 
   {
   },
   async mounted () 
   {
-      const res = await axios.get('api/retourLogin')
+      const res = await axios.get('/api/retourLogin')
       if (res.data.status==false){
         this.verif()
       }
+      const listMessage = await axios.get('/api/getmessage')
+      this.listmessage.push(listMessage.data.liste)
 
     
   },
@@ -72,6 +76,8 @@ var app = new Vue(
    
     async login(Login){
       const res = await axios.post('/api/login', Login)
+      console.log(res.data.status)
+      
       if (res.data.status==true){
         axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.access}`;
         refreshToken = res.data.refresh
@@ -107,6 +113,17 @@ var app = new Vue(
         this.resultlogin = 1;
         this.$router.push('/accueil');
       }
+    },
+    async submitmessage(message){
+      const date = new Date()
+      const day = date.getDate()
+      const month = date.getMonth() + 1
+      const year = date.getFullYear()
+      const heures = date.getHours()
+      const minutes = date.getMinutes()
+      const fulldate = day+ '/'+ month + '/' + year + ' ' + heures + ':' + minutes
+      const res = await axios.post('/api/sendMessage', {message:message,date:fulldate})
+      console.log(res.data.user)
     }
   
   }

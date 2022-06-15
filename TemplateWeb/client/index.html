@@ -20,7 +20,9 @@
       </header>
       <main>
         <router-view 
+        :listmessage="listmessage"
         :resultlogin="resultlogin"
+        @submit-message = "submitmessage"
         @login-user="login"
         @verif-con="verif"
         @sign-user="sign"

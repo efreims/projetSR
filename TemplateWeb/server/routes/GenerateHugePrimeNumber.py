@@ -60,3 +60,4 @@ def generate_prime_number(n):
         generated += 1
     return generated
         
+print(generate_prime_number(512))

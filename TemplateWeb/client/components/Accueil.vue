@@ -1,7 +1,7 @@
 <template>
     <div>
         Page réservé aux membres connectés
-        {{message}}
+        <Conversation @submit-message="submitmessage" :listmessage="listmessage"> </Conversation>
     </div>
 </template>
 
@@ -10,6 +10,10 @@
         name : "Accueil",
         props: {
             resultlogin:Number,
+            listmessage:Array
+        },
+        components:{
+            Conversation
         },
         data(){
             return{
@@ -17,7 +21,10 @@
             }
         },
         methods : {
-        
+            submitmessage(messagesend){
+                console.log('test')
+                this.$emit('submit-message',messagesend)
+            }
     
         },
         mounted(){

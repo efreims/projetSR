@@ -6,7 +6,7 @@ const jwt = require('jsonwebtoken')
 // /!\ Créez les dossiers de destination au cas où avant l'upload
 const multer = require('multer')
 const {Sequelize} = require('sequelize');
-const sequelize = new Sequelize("bddvigenere","root","Hoopiangel61", //Veuillez mettre le mot de passe de la base de donnée
+const sequelize = new Sequelize("bddvigenere","root","Fbq6dwab", //Veuillez mettre le mot de passe de la base de donnée
 {
   dialect: "mysql",
   host: "localhost",
@@ -137,8 +137,9 @@ router.post('/login', (req,res) => {
     {
       bcrypt.compare(password,result[0][0].password, function(err,result2) {
         if (result2){
-          const accessToken = generateAcessToken({email : email,password:this.password})
-        const refreshToken = generateRefreshToken({email : email,password:this.password})
+          const accessToken = generateAcessToken({email : email,password:this.password,userID :result[0][0].userId})
+          console.log('IDDDD: ' + result[0][0].userId) 
+          const refreshToken = generateRefreshToken({email : email,password:this.password,userID :result[0][0].userId})
     res.cookie('log',accessToken,{
       httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
       secure: true, //Uniquement sur https
@@ -244,6 +245,7 @@ router.post('/sign', (req,res) => {
           })
         } 
         else {
+          console.log('Crzation')
           const spawner = require('child_process').spawn
           const python_process = spawner('python', ['D:/EFREI/MasterCamp/Projet/projetSR/TemplateWeb/server/routes/generateKeys.py']) // C'est la sauce faut mettre le path global sinon NOOT NOOT
           python_process.stdout.on('data',(data) =>{
@@ -253,9 +255,8 @@ router.post('/sign', (req,res) => {
             const private = result_list[1]
             const public = result_list[0]
             const n = result_list[2]
-
-
-            sequelize.query(`insert into users(name, email ,password ,admin,city,privatekey,publickey,n) values ('${name}','${email}','${hash}','0','${city}','${private}','${public}','${n}')`).then(function(result) {
+            let temp = "rere"
+            sequelize.query(`insert into users(name, email ,password ,admin,city,privatekey) values ('${name}','${email}','${hash}','0','${city}','${temp}')`).then(function(result) {
               const accessToken = generateAcessToken({email : email,password:this.password})
               const refreshToken = generateRefreshToken({email : email,password:this.password})
               
@@ -272,9 +273,9 @@ router.post('/sign', (req,res) => {
       
               })
           })
-          python_process.stderr.on('data',(data) =>{
-            console.error('ERREUR : ', data.toString())
-          })
+         // python_process.stderr.on('data',(data) =>{
+           // console.error('ERREUR : ', data.toString())
+          //})
           
         }
       })
@@ -286,4 +287,42 @@ router.post('/sign', (req,res) => {
 
 })
 
+
+router.post('/sendMessage',(req,res) => {
+  const message= req.body.message
+  const date = req.body.date
+  console.log(date)
+  token = req.cookies.log
+  jwt.verify(token,process.env.ACCESS_TOKEN_SECRET, (err,user) =>{//Décrypt le token
+    if(err){
+      console.log('PAS BON')
+      return res.sendStatus(401)
+    }
+    console.log('Idsender : ' + user.userID)
+    const userSender = user.userID
+    let userReceive = 0
+    if(userSender == 1)
+      userReceive = 2
+    else
+      userReceive = 1
+    sequelize.query(`insert into message(ciphertext, senderId, receiverId,messageDate) values ('${message}','${userSender}','${userReceive}','${date}')`).then(function(result) {
+
+
+
+    })
+    res.json({user:user})
+  })
+})
+
+router.get('/getmessage',(req,res) => {
+  console.log('yeretetete')
+  const message= req.body.message
+  const date = req.body.date
+  console.log(date)
+  sequelize.query(`select * from message`).then(function(result) {
+    res.json({liste:result[0]})
+
+
+  })
+})
 module.exports = router

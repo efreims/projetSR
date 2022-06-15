@@ -21,9 +21,9 @@ CREATE TABLE users(
     password TEXT,
     admin BOOL, -- à quoi sert un admin dans notre appli ??
     city TEXT,
-    privatekey INT,
-    publickey INT,
-    n INT
+    privatekey TEXT,
+    publickey TEXT,
+    n TEXT
 );
 
 CREATE TABLE message(
@@ -32,17 +32,16 @@ CREATE TABLE message(
     ciphertextReturn TEXT,
     senderId INT NOT NULL,
     receiverId INT NOT NULL,
-    messageDate DATE,
+    messageDate TEXT,
     /*messageRead BOOL,*/
 	FOREIGN KEY(senderID) REFERENCES users(userID),
 	FOREIGN KEY(receiverID) REFERENCES users(userID)
 );
 
-INSERT INTO users (name, email, password, admin, city, privatekey, publickey) VALUES ('user1', 'user@email.com', 'password', 0, 'Paris',1, 11);
-INSERT INTO users (name, email, password, admin, city, privatekey, publickey) VALUES ('admin', 'admin@email.com', 'password', 1, 'Paris',2, 12);
+
 
 insert into message (ciphertext, senderId, receiverId) values ("blabla",1,2);
-
+select* from message;
 create view ciphertextForReceiver as
 SELECT ciphertext, messageDate, receiver.privatekey, sender.publickey, message.receiverId, message.senderId
 from message
@@ -57,7 +56,7 @@ join users receiver on receiver.userId = message.receiverId;
 select * from ciphertextForReceiver;
 select * from ciphertextForSender;
 
-
+select * from users
 /*Table ZIP*/
 
 
