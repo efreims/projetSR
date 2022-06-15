@@ -21,9 +21,9 @@ CREATE TABLE users(
     password TEXT,
     admin BOOL, -- à quoi sert un admin dans notre appli ??
     city TEXT,
-    privatekey INT,
-    publickey INT,
-    n INT
+    privatekey TEXT,
+    publickey TEXT,
+    n TEXT
 );
 
 CREATE TABLE message(
