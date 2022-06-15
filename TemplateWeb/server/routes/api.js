@@ -255,8 +255,8 @@ router.post('/sign', (req,res) => {
             const private = result_list[1]
             const public = result_list[0]
             const n = result_list[2]
-            let temp = "rere"
-            sequelize.query(`insert into users(name, email ,password ,admin,city,privatekey) values ('${name}','${email}','${hash}','0','${city}','${temp}')`).then(function(result) {
+
+            sequelize.query(`insert into users(name, email ,password ,admin,city,privatekey,publickey,n) values ('${name}','${email}','${hash}','0','${city}','${private}','${public}','${n}')`).then(function(result) {
               const accessToken = generateAcessToken({email : email,password:this.password})
               const refreshToken = generateRefreshToken({email : email,password:this.password})
               
@@ -291,6 +291,7 @@ router.post('/sign', (req,res) => {
 router.post('/sendMessage',(req,res) => {
   const message= req.body.message
   const date = req.body.date
+  const spawner = require('child_process').spawn
   console.log(date)
   token = req.cookies.log
   jwt.verify(token,process.env.ACCESS_TOKEN_SECRET, (err,user) =>{//Décrypt le token
@@ -305,12 +306,23 @@ router.post('/sendMessage',(req,res) => {
       userReceive = 2
     else
       userReceive = 1
-    sequelize.query(`insert into message(ciphertext, senderId, receiverId,messageDate) values ('${message}','${userSender}','${userReceive}','${date}')`).then(function(result) {
+    sequelize.query(`select * from users where userId = '${userReceive}'`).then(function(results) {
+      
+      const data_to_pass_in = {
+        data_sent: results.publickey+'¤©◄'+results.n+'¤©◄'+message,
+        data_returned: undefined
+      };
+      const python_process = spawner('python', ['./python.py', JSON.stringify(data_to_pass_in)])
+      python_process.stdout.on('data', (data) => {
+        message = data.toString()
+        sequelize.query(`insert into message(ciphertext, senderId, receiverId,messageDate) values ('${message}','${userSender}','${userReceive}','${date}')`).then(function(result) {
 
 
-
+          res.json({user:user})
+        })
+      })
     })
-    res.json({user:user})
+   
   })
 })
 
