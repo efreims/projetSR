@@ -36,11 +36,12 @@ def generate_keypair(p, q):
         e = random.randrange(1, phi)
         g = math.gcd(e, phi)
     d = multiplicative_inverse(e, phi)
-    return ((e, n), (d, n))
+    return (e,d,n)
 
 p = generate_prime_number(512)
 q = generate_prime_number(512)
-public, private = generate_keypair(p, q)
-output = [public,private]
-print(json.dumps(output))
+public, private,n = generate_keypair(p, q)
+output = str(public)+" "+str(private)+" "+str(n)
+#print("output = "+ str(output))
+print(output)
 sys.stdout.flush()

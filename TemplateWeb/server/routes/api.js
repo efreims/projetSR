@@ -247,10 +247,15 @@ router.post('/sign', (req,res) => {
           const spawner = require('child_process').spawn
           const python_process = spawner('python', ['D:/EFREI/MasterCamp/Projet/projetSR/TemplateWeb/server/routes/generateKeys.py']) // C'est la sauce faut mettre le path global sinon NOOT NOOT
           python_process.stdout.on('data',(data) =>{
-            console.log('ANKULAY')
-            console.log('Keys created :', data.toString())
+            const retrieved = data.toString()
+            console.log('Keys created :', retrieved)
+            const result_list = retrieved.split(' ')
+            const private = result_list[1]
+            const public = result_list[0]
+            const n = result_list[2]
 
-            sequelize.query(`insert into users(name, email ,password ,admin,city,privatekey) values ('${name}','${email}','${hash}','0','${city}','${data.toString()}')`).then(function(result) {
+
+            sequelize.query(`insert into users(name, email ,password ,admin,city,privatekey,publickey,n) values ('${name}','${email}','${hash}','0','${city}','${private}','${public}','${n}')`).then(function(result) {
               const accessToken = generateAcessToken({email : email,password:this.password})
               const refreshToken = generateRefreshToken({email : email,password:this.password})
               
