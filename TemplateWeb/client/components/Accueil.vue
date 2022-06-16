@@ -1,7 +1,7 @@
 <template>
     <div>
         Page réservé aux membres connectés
-        <Conversation @submit-message="submitmessage" :listmessage="listmessage"> </Conversation>
+        <Conversation @submit-password = "submitpassword" @submit-message="submitmessage" :listmessage="listmessage"> </Conversation>
     </div>
 </template>
 
@@ -24,6 +24,9 @@
             submitmessage(messagesend){
                 console.log('test')
                 this.$emit('submit-message',messagesend)
+            },
+             submitpassword(password){
+                this.$emit('submit-password',password)
             }
     
         },

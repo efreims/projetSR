@@ -7,6 +7,10 @@
             <input type="txt" placeholder="votre message" v-model="messagesend">
             <button>Envoyer</button>
         </form>
+        <form @submit.prevent="submitpassword">
+            <input type="password" placeholder="Tapez votre mdp" v-model="passwordDecrypt">
+            <button>Envoyer</button>
+        </form>
     </div>
 </template>
 
@@ -19,13 +23,17 @@
         },
         data(){
             return{
-                messagesend:""
+                messagesend:"",
+                passwordDecrypt:""
             }
         },
         methods : {
             submitmessage(){
                 console.log('yes')
                 this.$emit('submit-message',this.messagesend)
+            },
+            submitpassword(){
+                this.$emit('submit-password',this.passwordDecrypt)
             }
     
         },
