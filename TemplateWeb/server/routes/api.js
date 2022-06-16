@@ -289,7 +289,7 @@ router.post('/sign', (req,res) => {
 
 
 router.post('/sendMessage',(req,res) => {
-  const message= req.body.message
+  let message= req.body.message
   const date = req.body.date
   const spawner = require('child_process').spawn
   console.log(date)
@@ -307,12 +307,14 @@ router.post('/sendMessage',(req,res) => {
     else
       userReceive = 1
     sequelize.query(`select * from users where userId = '${userReceive}'`).then(function(results) {
-      
+
       const data_to_pass_in = {
-        data_sent: results.publickey+'¤©◄'+results.n+'¤©◄'+message,
+        data_sent: results[0][0].publickey+'.'+results[0][0].n+'.'+message,
         data_returned: undefined
       };
-      const python_process = spawner('python', ['./python.py', JSON.stringify(data_to_pass_in)])
+      console.log(data_to_pass_in);
+      const python_process = spawner('python', ['D:/EFREI/MasterCamp/Projet/projetSR/TemplateWeb/server/routes/Cypher.py', JSON.stringify(data_to_pass_in)])
+      console.log("data is sent");
       python_process.stdout.on('data', (data) => {
         message = data.toString()
         sequelize.query(`insert into message(ciphertext, senderId, receiverId,messageDate) values ('${message}','${userSender}','${userReceive}','${date}')`).then(function(result) {
