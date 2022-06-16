@@ -22,8 +22,8 @@ Tout cela en utilisant Visual Studio Code.
 </br>
 <img src="doc/njs.png" width="200" height="100"/>
 <img src="doc/vjs.jpg" width="100" height="100"/>
-<img src="doc/py.png" width="100" height="100"/>
-<img src="doc/vsc.png" width="100" height="100"/>
+<img src="doc/py.png" width="150" height="100"/>
+<img src="doc/vsc.png" width="150" height="100"/>
 </br>
 </br>
 
