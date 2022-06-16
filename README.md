@@ -20,11 +20,10 @@ Ce projet est un site web conçu avec : Node.js, Express.js, Vue.js, Python
 Tout cela en utilisant Visual Studio Code.
 </br>
 </br>
-<img src="doc/Image/njs.png" width="200" height="50"/>
-<img src="doc/Image/ejs.jpg" width="50" height="50"/>
-<img src="doc/Image/vjs.jpg" width="50" height="50"/>
-<img src="doc/Image/py.jpg" width="50" height="50"/>
-<img src="doc/Image/vsc.jpg" width="50" height="50"/>
+<img src="doc/njs.png" width="200" height="50"/>
+<img src="doc/vjs.jpg" width="50" height="50"/>
+<img src="doc/py.png" width="50" height="50"/>
+<img src="doc/vsc.png" width="50" height="50"/>
 </br>
 </br>
 
