@@ -52,3 +52,7 @@ Ce dossier va comporter le squelette du site Web, ce dossier est le coeur même 
 ## Auth 2F
 
 Ce dossier va comporter tous les fichiers liés à l'authentification à double facteurs nécessaire à l'envoi et à la lecture des messages.
+
+# Autres
+En cas de problèmes lors du lancement du programme ou de questions, veuillez envoyer un mail à : **vigenere@gmail.com**
+</br></br>
