@@ -6,7 +6,7 @@ const jwt = require('jsonwebtoken')
 // /!\ Créez les dossiers de destination au cas où avant l'upload
 const multer = require('multer')
 const {Sequelize} = require('sequelize');
-const sequelize = new Sequelize("bddvigenere","root","Hoopiangel61", //Veuillez mettre le mot de passe de la base de donnée
+const sequelize = new Sequelize("bddvigenere","root","Fbq6dwab", //Veuillez mettre le mot de passe de la base de donnée
 {
   dialect: "mysql",
   host: "localhost",
@@ -247,7 +247,7 @@ router.post('/sign', (req,res) => {
         else {
           console.log('Crzation')
           const spawner = require('child_process').spawn
-          const python_process = spawner('python', ['D:/EFREI/MasterCamp/Projet/projetSR/TemplateWeb/server/routes/generateKeys.py']) // C'est la sauce faut mettre le path global sinon NOOT NOOT
+          const python_process = spawner('python', ['C:/Users/lefev/projetSR-devtemp/TemplateWeb/server/routes/generateKeys.py']) // C'est la sauce faut mettre le path global sinon NOOT NOOT
           python_process.stdout.on('data',(data) =>{
             const retrieved = data.toString()
             console.log('Keys created :', retrieved)
@@ -313,16 +313,20 @@ router.post('/sendMessage',(req,res) => {
         data_returned: undefined
       };
       console.log(data_to_pass_in);
-      const python_process = spawner('python', ['D:/EFREI/MasterCamp/Projet/projetSR/TemplateWeb/server/routes/Cypher.py', JSON.stringify(data_to_pass_in)])
+      const python_process = spawner('python', ['C:/Users/lefev/projetSR-devtemp/TemplateWeb/server/routes/Cypher.py', JSON.stringify(data_to_pass_in)])
       console.log("data is sent");
       python_process.stdout.on('data', (data) => {
         message = data.toString()
         sequelize.query(`insert into message(ciphertext, senderId, receiverId,messageDate) values ('${message}','${userSender}','${userReceive}','${date}')`).then(function(result) {
-
-
-          res.json({user:user})
+          sequelize.query(`select MAX(messageId) as id from message `).then(function(iDmessage) {
+          res.json({messageId :iDmessage[0][0].id, cyphertext:message,senderId:userSender,receiverId:userReceive,messageDate:date})
+          })
         })
       })
+       python_process.stderr.on('data',(data) =>{
+          console.error('ERREUR : ', data.toString())
+      })
+
     })
    
   })

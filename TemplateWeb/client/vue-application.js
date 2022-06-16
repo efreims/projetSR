@@ -124,6 +124,9 @@ var app = new Vue(
       const fulldate = day+ '/'+ month + '/' + year + ' ' + heures + ':' + minutes
       const res = await axios.post('/api/sendMessage', {message:message,date:fulldate})
       console.log(res.data.user)
+      console.log(res.data)
+      console.log(this.listmessage)
+      this.listmessage[0].push(res.data)
     }
   
   }
