@@ -68,7 +68,7 @@ var app = new Vue(
         this.verif()
       }
       const listMessage = await axios.get('/api/getmessage')
-      //console.log(listMessage.data.liste)
+      console.log(listMessage.data.liste)
 
       this.listmessage.push(listMessage.data.liste)
       const valeurMdpDecrypt = await axios.get('/api/verifMdpDecrypt')
@@ -149,7 +149,8 @@ var app = new Vue(
         this.verifMdpDecrypt=1
         console.log(res.data.listeDescrypt)
         const listMessage = await axios.get('/api/getmessage')
-        this.listmessage[0].push(listMessage.data.liste)
+        this.listmessage = []
+        this.listmessage.push(listMessage.data.liste)
       }
         
 

@@ -322,11 +322,11 @@ router.post('/sendMessage',(req,res) => {
           sequelize.query(`select MAX(messageId) as id from message `).then(function(iDmessage) {
             if(req.body.verifMdpDecrypt==1){
               //On garde le message decrypté
-              res.json({messageId :iDmessage[0][0].id, cyphertext:messageDecrypt,senderId:userSender,receiverId:userReceive,messageDate:date})
+              res.json({message:messageDecrypt,date:date,send:true})
             }
             else{
             //Sinon on envoie la version crypté
-            res.json({messageId :iDmessage[0][0].id, cyphertext:message,senderId:userSender,receiverId:userReceive,messageDate:date})
+            res.json({ message:message,date:date,send:true})
             }
           })
         })
@@ -409,7 +409,24 @@ router.get('/getmessage',(req,res) => {
     })
     }
     else{
-     res.json({liste:result[0]})
+      let listefin= [];
+      for (let j=0;j<result[0].length;j++){
+        let send;
+        let messageToSend;
+        if (result[0][j].senderId==id){
+          send = true
+          messageToSend = result[0][j].ciphertextReturn
+        }
+        else{
+          send = false
+          messageToSend = result[0][j].ciphertext
+        }
+        let objectToAdd = {message:messageToSend,date:result[0][j].messageDate,send:send}
+        listefin.push(objectToAdd)
+        //if (i=)
+      }
+      console.log('liste fin = ' + listefin)
+     res.json({liste:listefin})
     }
 
   })
