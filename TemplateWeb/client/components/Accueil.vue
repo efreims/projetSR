@@ -31,7 +31,7 @@
     
         },
         mounted(){
-            //this.$emit("verif-con")
+            this.$emit("load-data")
         }
     }
 

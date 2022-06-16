@@ -68,6 +68,8 @@ var app = new Vue(
         this.verif()
       }
       const listMessage = await axios.get('/api/getmessage')
+      //console.log(listMessage.data.liste)
+
       this.listmessage.push(listMessage.data.liste)
       const valeurMdpDecrypt = await axios.get('/api/verifMdpDecrypt')
       //console.log(valeurMdpDecrypt.data.cookiemdp)
@@ -87,6 +89,8 @@ var app = new Vue(
         axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.access}`;
         refreshToken = res.data.refresh
         this.resultlogin = 1;
+        const listMessage = await axios.get('/api/getmessage')
+        this.listmessage.push(listMessage.data.liste)
         this.$router.push('/accueil');
       }
       
@@ -109,6 +113,7 @@ var app = new Vue(
       console.log(res.data.status)
       this.$router.push('/');
       this.resultlogin = 0
+      this.listmessage = []
     },
     async sign(Sign){
       console.log(Sign)
@@ -143,9 +148,15 @@ var app = new Vue(
         //this.listmessage = res.data.listeDescrypt
         this.verifMdpDecrypt=1
         console.log(res.data.listeDescrypt)
+        const listMessage = await axios.get('/api/getmessage')
+        this.listmessage[0].push(listMessage.data.liste)
       }
         
 
+    },
+    async loadData(){
+      const listMessage = await axios.get('/api/getmessage')
+        this.listmessage.push(listMessage.data.liste)
     }
   
   }
