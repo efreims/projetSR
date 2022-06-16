@@ -32,7 +32,7 @@ CREATE TABLE message(
     ciphertextReturn TEXT,
     senderId INT NOT NULL,
     receiverId INT NOT NULL,
-    messageDate DATE,
+    messageDate TEXT,
     /*messageRead BOOL,*/
 	FOREIGN KEY(senderID) REFERENCES users(userID),
 	FOREIGN KEY(receiverID) REFERENCES users(userID)
