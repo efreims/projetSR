@@ -37,3 +37,18 @@ Le programme a été lancé **UNIQUEMENT SOUS WINDOWS**, les configurations sont
 
 # Les différentes Branches
 
+## AlgoPy
+
+Ce dossier va comporter tous les scripts Python qui vont être reliés au chiffrement et au déchiffrement. Ce sont ces fichiers qui s'occupent de toute la partie cryptographique du projet.
+
+## BDD
+
+Ce dossier va comporter tous les fichiers liés à la Base De Données, notre base de données est en MySQL.
+
+## Template Web
+
+Ce dossier va comporter le squelette du site Web, ce dossier est le coeur même du site Web
+
+## Auth 2F
+
+Ce dossier va comporter tous les fichiers liés à l'authentification à double facteurs nécessaire à l'envoi et à la lecture des messages.
