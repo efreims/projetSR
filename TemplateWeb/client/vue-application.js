@@ -68,6 +68,7 @@ var app = new Vue(
       }
       const listMessage = await axios.get('/api/getmessage')
       this.listmessage.push(listMessage.data.liste)
+     // console.log(listMessage.data.liste)
 
     
   },
@@ -127,6 +128,17 @@ var app = new Vue(
       console.log(res.data)
       console.log(this.listmessage)
       this.listmessage[0].push(res.data)
+    },
+    async submitpassword(password){
+      console.log('ca marche : '+password)
+      if (password=="123"){
+        console.log("mdp OK")
+        console.log(this.listmessage)
+        const res = await axios.post('/api/decrypt', {listCrypt : this.listmessage})
+        console.log(res.data.listeDescrypt)
+      }
+        
+
     }
   
   }

@@ -307,26 +307,35 @@ router.post('/sendMessage',(req,res) => {
     else
       userReceive = 1
     sequelize.query(`select * from users where userId = '${userReceive}'`).then(function(results) {
-
+      sequelize.query(`select * from users where userId = '${userSender}'`).then(function(resultForSender) {
       const data_to_pass_in = {
         data_sent: results[0][0].publickey+'.'+results[0][0].n+'.'+message,
         data_returned: undefined
       };
+      const data_to_pass_in2 = {
+        data_sent: resultForSender[0][0].publickey+'.'+resultForSender[0][0].n+'.'+message,
+        data_returned: undefined
+      };
       console.log(data_to_pass_in);
+      console.log(data_to_pass_in2)
       const python_process = spawner('python', ['C:/Users/lefev/projetSR-devtemp/TemplateWeb/server/routes/Cypher.py', JSON.stringify(data_to_pass_in)])
       console.log("data is sent");
       python_process.stdout.on('data', (data) => {
+        const python_process2 = spawner('python', ['C:/Users/lefev/projetSR-devtemp/TemplateWeb/server/routes/Cypher.py', JSON.stringify(data_to_pass_in2)])
+        python_process2.stdout.on('data', (data2) => {
         message = data.toString()
-        sequelize.query(`insert into message(ciphertext, senderId, receiverId,messageDate) values ('${message}','${userSender}','${userReceive}','${date}')`).then(function(result) {
+        messageForSender = data2.toString()
+        sequelize.query(`insert into message(ciphertext,ciphertextReturn, senderId, receiverId,messageDate) values ('${message}','${messageForSender}','${userSender}','${userReceive}','${date}')`).then(function(result) {
           sequelize.query(`select MAX(messageId) as id from message `).then(function(iDmessage) {
           res.json({messageId :iDmessage[0][0].id, cyphertext:message,senderId:userSender,receiverId:userReceive,messageDate:date})
           })
         })
       })
+      })
        python_process.stderr.on('data',(data) =>{
           console.error('ERREUR : ', data.toString())
       })
-
+    })
     })
    
   })
@@ -337,10 +346,27 @@ router.get('/getmessage',(req,res) => {
   const message= req.body.message
   const date = req.body.date
   console.log(date)
+  sequelize.query(`select * from ciphertextForReceiver UNION select * from ciphertextForSender`).then(function(result) {
+
+      //console.log("data :"+dataToPush[0][0])
+    res.json({liste:result[0]})
+  })
+  /*
   sequelize.query(`select * from message`).then(function(result) {
     res.json({liste:result[0]})
 
 
   })
+  */
+})
+
+
+router.post('/decrypt',(req,res) => {
+    console.log('dans la route')
+    console.log(req.body.listCrypt)
+    //TODO Decrypter les messages
+    //Apres avoir obtenu l'output
+    let decrypt = "chaine decryptée"
+    res.json({listeDescrypt:decrypt})
 })
 module.exports = router
