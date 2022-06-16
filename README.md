@@ -2,13 +2,13 @@
 
 Ceci est le github pour la Solution Factory du Mastercamp.
 </br>
-Nous sommes le groupe n°333 composé de : 
-DAMOIS Hugo
-DUVAL Arnaud
-LEFVRE Noé
-SENCHANH Dylan
-SOK Michaël
-WERNERT Sébastien
+Nous sommes le groupe n°333 composé de :  </br>
+DAMOIS Hugo </br>
+DUVAL Arnaud </br>
+LEFVRE Noé </br>
+SENCHANH Dylan </br>
+SOK Michaël </br>
+WERNERT Sébastien </br>
 </br>
 
 Ce projet a pour but de créer une messagerie sécurisée basé sur le chiffrage de bout en bout :
@@ -20,7 +20,7 @@ Ce projet est un site web conçu avec : Node.js, Express.js, Vue.js, Python
 Tout cela en utilisant Visual Studio Code.
 </br>
 </br>
-<img src="doc/njs.png" width="200" height="100"/>
+<img src="doc/njs.png" width="200" height="100"/> 
 <img src="doc/vjs.png" width="100" height="100"/>
 <img src="doc/py.png" width="150" height="100"/>
 <img src="doc/vsc.png" width="150" height="100"/>
