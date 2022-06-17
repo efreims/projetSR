@@ -33,9 +33,8 @@ function generateRefreshToken(user){
 }
 //Pour vérifier que la personne est connectée
 function autoToken(req,res, next){
-  const authHeader = req.headers['authorization']
-  console.log('auth2' + authHeader)
-  const token = authHeader && authHeader.split(' ')[1]
+  const token = req.cookies.log
+  //const token = authHeader && authHeader.split(' ')[1]
   console.log('token' + token)
   console.log(token)
   if(!token){
@@ -104,22 +103,15 @@ router.get('/deco',(req,res) => {
     httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
     secure: true, //Uniquement sur https
   })
-  res.send({message : 'deco réussi'})
-})
-
-
-
-router.get('/deco',(req,res) => {
-  res.cookie('log','',{
-    httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
-    secure: true, //Uniquement sur https
-  })
-  res.cookie('refresh','',{
+  res.cookie('saveMdpDecrypt',0,{
     httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
     secure: true, //Uniquement sur https
   })
   res.send({message : 'deco réussi'})
 })
+
+
+
 
 router.post('/login', (req,res) => {
   const email = req.body.email
@@ -164,14 +156,16 @@ router.post('/login', (req,res) => {
 })
 
 router.post('/refreshToken', (req, res) => {
-  const authHeader = req.headers['authorization']
-
-  const token = authHeader && authHeader.split(' ')[1]
+  const token = req.cookies.refresh
+  console.log('TOKEN REFRESH' + token)
+  // const authHeader = req.cookies.refresh
+  //const token = authHeader && authHeader.split(' ')[1]
 
   if (token == null) return res.sendStatus(401)
 
   jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
     if (err) {
+      //console.log('testttttttttt')
       //req.cookies.log
       res.sendStatus(404)
     }
@@ -289,7 +283,7 @@ router.post('/sign', (req,res) => {
 
 
 router.post('/sendMessage',(req,res) => {
-  let message= req.body.message
+  var messageDecrypt= req.body.message
   const date = req.body.date
   const spawner = require('child_process').spawn
   console.log(date)
@@ -309,11 +303,11 @@ router.post('/sendMessage',(req,res) => {
     sequelize.query(`select * from users where userId = '${userReceive}'`).then(function(results) {
       sequelize.query(`select * from users where userId = '${userSender}'`).then(function(resultForSender) {
       const data_to_pass_in = {
-        data_sent: results[0][0].publickey+'.'+results[0][0].n+'.'+message,
+        data_sent: results[0][0].publickey+'.'+results[0][0].n+'.'+messageDecrypt,
         data_returned: undefined
       };
       const data_to_pass_in2 = {
-        data_sent: resultForSender[0][0].publickey+'.'+resultForSender[0][0].n+'.'+message,
+        data_sent: resultForSender[0][0].publickey+'.'+resultForSender[0][0].n+'.'+messageDecrypt,
         data_returned: undefined
       };
       console.log(data_to_pass_in);
@@ -327,7 +321,14 @@ router.post('/sendMessage',(req,res) => {
         messageForSender = data2.toString()
         sequelize.query(`insert into message(ciphertext,ciphertextReturn, senderId, receiverId,messageDate) values ('${message}','${messageForSender}','${userSender}','${userReceive}','${date}')`).then(function(result) {
           sequelize.query(`select MAX(messageId) as id from message `).then(function(iDmessage) {
-          res.json({messageId :iDmessage[0][0].id, cyphertext:message,senderId:userSender,receiverId:userReceive,messageDate:date})
+            if(req.body.verifMdpDecrypt==1){
+              //On garde le message decrypté
+              res.json({message:messageDecrypt,date:date,send:true})
+            }
+            else{
+            //Sinon on envoie la version crypté
+            res.json({ message:message,date:date,send:true})
+            }
           })
         })
       })
@@ -342,14 +343,90 @@ router.post('/sendMessage',(req,res) => {
 })
 
 router.get('/getmessage',(req,res) => {
+  var finBoucle=0;
+  var ListMessageDecrypt = []
   console.log('yeretetete')
+  const token = req.cookies.log
+  var id=0;
+  //Extrait l'id de l'utilisateur
+  jwt.verify(token,process.env.ACCESS_TOKEN_SECRET, (err,user) =>{//Décrypt le token
+    //req.session.userid = user.userid
+    console.log(user.userID)
+    id =  user.userID
+  })
   const message= req.body.message
   const date = req.body.date
-  console.log(date)
-  sequelize.query(`select * from ciphertextForReceiver UNION select * from ciphertextForSender`).then(function(result) {
-
+  sequelize.query(`SELECT * from message join users sender on sender.userId = message.senderId join users receiver on receiver.userId = message.receiverId
+  where receiver.userId='${id}' UNION SELECT * from message join users sender on sender.userId = message.senderId join users receiver on receiver.userId = message.receiverId
+  where sender.userId='${id}';`).then(function(result) {
+      //console.log(resultSender)
       //console.log("data :"+dataToPush[0][0])
-    res.json({liste:result[0]})
+
+    if (req.cookies.saveMdpDecrypt && req.cookies.saveMdpDecrypt==1){
+      console.log('dans la condition')
+      sequelize.query(`select * from users where userId='${id}'`).then(function(results) {
+        //console.log(results[0][0].privatekey)
+        //console.log('Resultats : '+result[0][0])
+
+        for (let i=0;i<result[0].length;i++){
+          let messageToDecrypt=""
+        if(result[0][i].senderId==id){
+          messageToDecrypt = result[0][i].ciphertextReturn
+        }
+        else{
+          messageToDecrypt = result[0][i].ciphertext
+        }
+        console.log("Message a decrypter" + messageToDecrypt)
+        const data_to_pass_in = {
+          data_sent: results[0][0].privatekey+'.'+result[0][0].n+'.'+messageToDecrypt,
+          data_returned: undefined
+        };
+        const spawner = require('child_process').spawn
+        const python_process = spawner('python', ['C:/Users/lefev/projetSR-devtemp/TemplateWeb/server/routes/Decypher.py', JSON.stringify(data_to_pass_in)])
+        python_process.stdout.on('data', (data2) => {
+            console.log(data2.toString())
+            var send;
+            if (result[0][i].senderId==id)
+              send=true
+            else 
+              send=false
+            ListMessageDecrypt.push({message:data2.toString(),date:result[0][i].messageDate,send:send})
+            console.log('Liste en cours' + ListMessageDecrypt)
+            if (i==result[0].length-1){
+              console.log('Liste final' +ListMessageDecrypt)
+              res.json({liste : ListMessageDecrypt})
+            }
+          })
+          console.log('yesy')
+     //console.log("prevate key = " +result[0][0][0])
+      //Decrypter les messages extraits
+        //console.log('i : '+i)
+      }
+
+
+    })
+    }
+    else{
+      let listefin= [];
+      for (let j=0;j<result[0].length;j++){
+        let send;
+        let messageToSend;
+        if (result[0][j].senderId==id){
+          send = true
+          messageToSend = result[0][j].ciphertextReturn
+        }
+        else{
+          send = false
+          messageToSend = result[0][j].ciphertext
+        }
+        let objectToAdd = {message:messageToSend,date:result[0][j].messageDate,send:send}
+        listefin.push(objectToAdd)
+        //if (i=)
+      }
+      console.log('liste fin = ' + listefin)
+     res.json({liste:listefin})
+    }
+
   })
   /*
   sequelize.query(`select * from message`).then(function(result) {
@@ -363,10 +440,37 @@ router.get('/getmessage',(req,res) => {
 
 router.post('/decrypt',(req,res) => {
     console.log('dans la route')
+    res.cookie('saveMdpDecrypt',1,{//Mettre le password hashé (remplacer le 1)
+      httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
+      secure: true, //Uniquement sur https
+    })
     console.log(req.body.listCrypt)
     //TODO Decrypter les messages
     //Apres avoir obtenu l'output
     let decrypt = "chaine decryptée"
     res.json({listeDescrypt:decrypt})
+})
+
+
+router.get('/verifMdpDecrypt',(req,res) => {
+  res.json({cookiemdp:req.cookies.saveMdpDecrypt})
+})
+
+router.get('/verifCookieLog',(req,res) => {
+  const token = req.cookies.log
+  //const token2
+  jwt.verify(token,process.env.ACCESS_TOKEN_SECRET, (err,user) =>{//Décrypt le token
+    if(err){
+      console.log('PAS BON')
+      //return res.sendStatus(401)
+      res.json({verif:false})
+    }
+    else{
+      //req.session.userid = user.userid
+      console.log('BON')
+      res.json({verif:true})
+    }
+  })
+  
 })
 module.exports = router

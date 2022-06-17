@@ -21,6 +21,9 @@
 <script>
      module.exports = {
         name : "Home",
+        props : {
+            resultlogin:Number,
+        },
         data(){
             return{
                 email:"",
@@ -43,6 +46,12 @@
             }
     
         },
+        mounted(){
+            console.log('result-login : ' + this.resultlogin)
+            if (this.resultlogin==1){
+                this.$emit('return-accueil')
+            }
+        }
         
     }
 
