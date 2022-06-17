@@ -157,6 +157,7 @@ var app = new Vue(
     },
     async loadData(){
       const listMessage = await axios.get('/api/getmessage')
+      console.log(listMessage.data.liste)
         this.listmessage.push(listMessage.data.liste)
     }
   
