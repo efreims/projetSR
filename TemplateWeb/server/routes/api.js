@@ -6,10 +6,10 @@ const jwt = require('jsonwebtoken')
 // /!\ Créez les dossiers de destination au cas où avant l'upload
 const multer = require('multer')
 const {Sequelize} = require('sequelize');
-const sequelize = new Sequelize("bddvigenere","root","Fbq6dwab", //Veuillez mettre le mot de passe de la base de donnée
+const sequelize = new Sequelize("bddvigenere","admin","vd}:8Eeq`(q=8`S(", //Veuillez mettre le mot de passe de la base de donnée
 {
   dialect: "mysql",
-  host: "localhost",
+  host: "database-mastercamp.ceb4nhtb3nme.eu-west-2.rds.amazonaws.com",
   port: 3306 // Changer le port si vous utilisez un autre port que 3306
 
 });
