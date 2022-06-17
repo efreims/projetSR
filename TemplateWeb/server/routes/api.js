@@ -241,7 +241,7 @@ router.post('/sign', (req,res) => {
         else {
           console.log('Crzation')
           const spawner = require('child_process').spawn
-          const python_process = spawner('python', ['C:/Users/lefev/projetSR-devtemp/TemplateWeb/server/routes/generateKeys.py']) // C'est la sauce faut mettre le path global sinon NOOT NOOT
+          const python_process = spawner('python', ['C:/Users/lefev/Proto_final/generateRSAKeys.py']) // C'est la sauce faut mettre le path global sinon NOOT NOOT
           python_process.stdout.on('data',(data) =>{
             const retrieved = data.toString()
             console.log('Keys created :', retrieved)
@@ -267,9 +267,9 @@ router.post('/sign', (req,res) => {
       
               })
           })
-         // python_process.stderr.on('data',(data) =>{
-           // console.error('ERREUR : ', data.toString())
-          //})
+          python_process.stderr.on('data',(data) =>{
+            console.error('ERREUR : ', data.toString())
+          })
           
         }
       })
