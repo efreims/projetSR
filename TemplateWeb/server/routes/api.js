@@ -33,9 +33,8 @@ function generateRefreshToken(user){
 }
 //Pour vérifier que la personne est connectée
 function autoToken(req,res, next){
-  const authHeader = req.headers['authorization']
-  console.log('auth2' + authHeader)
-  const token = authHeader && authHeader.split(' ')[1]
+  const token = req.cookies.log
+  //const token = authHeader && authHeader.split(' ')[1]
   console.log('token' + token)
   console.log(token)
   if(!token){
@@ -157,14 +156,16 @@ router.post('/login', (req,res) => {
 })
 
 router.post('/refreshToken', (req, res) => {
-  const authHeader = req.headers['authorization']
-
-  const token = authHeader && authHeader.split(' ')[1]
+  const token = req.cookies.refresh
+  console.log('TOKEN REFRESH' + token)
+  // const authHeader = req.cookies.refresh
+  //const token = authHeader && authHeader.split(' ')[1]
 
   if (token == null) return res.sendStatus(401)
 
   jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
     if (err) {
+      //console.log('testttttttttt')
       //req.cookies.log
       res.sendStatus(404)
     }
@@ -349,18 +350,15 @@ router.get('/getmessage',(req,res) => {
   var id=0;
   //Extrait l'id de l'utilisateur
   jwt.verify(token,process.env.ACCESS_TOKEN_SECRET, (err,user) =>{//Décrypt le token
-    
     //req.session.userid = user.userid
     console.log(user.userID)
     id =  user.userID
   })
   const message= req.body.message
   const date = req.body.date
-  console.log(date)
   sequelize.query(`SELECT * from message join users sender on sender.userId = message.senderId join users receiver on receiver.userId = message.receiverId
   where receiver.userId='${id}' UNION SELECT * from message join users sender on sender.userId = message.senderId join users receiver on receiver.userId = message.receiverId
   where sender.userId='${id}';`).then(function(result) {
-    console.log(result[0])
       //console.log(resultSender)
       //console.log("data :"+dataToPush[0][0])
 
@@ -456,5 +454,23 @@ router.post('/decrypt',(req,res) => {
 
 router.get('/verifMdpDecrypt',(req,res) => {
   res.json({cookiemdp:req.cookies.saveMdpDecrypt})
+})
+
+router.get('/verifCookieLog',(req,res) => {
+  const token = req.cookies.log
+  //const token2
+  jwt.verify(token,process.env.ACCESS_TOKEN_SECRET, (err,user) =>{//Décrypt le token
+    if(err){
+      console.log('PAS BON')
+      //return res.sendStatus(401)
+      res.json({verif:false})
+    }
+    else{
+      //req.session.userid = user.userid
+      console.log('BON')
+      res.json({verif:true})
+    }
+  })
+  
 })
 module.exports = router

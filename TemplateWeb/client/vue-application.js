@@ -19,10 +19,34 @@ axios.interceptors.response.use((response) => {
       console.log('refreshToken');
       await axios.post('/api/refreshToken').then((response) => {
         // TODO: mettre à jour l'accessToken dans le localStorage
-        console.log('efegeege')
+        console.log('token refreshed')
         originalRequest.headers['Authorization'] = `Bearer ${response.data.accessToken}`;
         axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.accessToken}`;
+        console.log('1')
+        location.reload()
+        /*
+        axios.get('/api/verifCookieLog').then((response2) => {
+        if (response2.data.verif==true)
+        {
+          console.log('dans dans')
+          axios.get('/api/getmessage').then((response3) => {
+            this.listmessage = []
+            console.log(this.listmessage)
+            this.listmessage.push(response3.data.liste)
+          })
+        }
+        })
+        */
       }).catch((err) => {
+        console.log('erreur')
+        /*
+        const veriflog = axios.get('/api/verifCookieLog')
+      if (veriflog.data.verif==true)
+      {
+        const listMessage = axios.get('/api/getmessage')
+        this.listmessage.push(listMessage.data.liste)
+      }
+      */
         console.log(err.response.status);
         refreshToken = null;
         axios.post('/api/retourLogin')
@@ -67,10 +91,13 @@ var app = new Vue(
       if (res.data.status==false){
         this.verif()
       }
-      const listMessage = await axios.get('/api/getmessage')
-      console.log(listMessage.data.liste)
-
-      this.listmessage.push(listMessage.data.liste)
+      const veriflog = await axios.get('/api/verifCookieLog')
+      if (veriflog.data.verif==true)
+      {
+        const listMessage = await axios.get('/api/getmessage')
+        console.log(listMessage.data.liste)
+        this.listmessage.push(listMessage.data.liste)
+      }
       const valeurMdpDecrypt = await axios.get('/api/verifMdpDecrypt')
       //console.log(valeurMdpDecrypt.data.cookiemdp)
       this.verifMdpDecrypt = valeurMdpDecrypt.data.cookiemdp
@@ -102,6 +129,7 @@ var app = new Vue(
       this.$router.push('/')
     }
     else{
+      console.log('test variavle')
       axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.access}`;
       refreshToken = res.data.refresh
       this.resultlogin = 1
@@ -114,6 +142,8 @@ var app = new Vue(
       this.$router.push('/');
       this.resultlogin = 0
       this.listmessage = []
+      axios.defaults.headers.common['Authorization'] = ''
+      axios.defaults.headers['Authorization'] = ''
     },
     async sign(Sign){
       console.log(Sign)
@@ -156,9 +186,16 @@ var app = new Vue(
 
     },
     async loadData(){
-      const listMessage = await axios.get('/api/getmessage')
-        this.listmessage.push(listMessage.data.liste)
+        const veriflog = await axios.get('/api/verifCookieLog')
+        if (veriflog.data.verif==true)
+        {
+          const listMessage = await axios.get('/api/getmessage')
+          this.listmessage.push(listMessage.data.liste)
+        }
+    },
+    async returnAccueil (){
+      router.push('/accueil')
     }
-  
+    
   }
 })

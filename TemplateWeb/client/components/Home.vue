@@ -55,6 +55,9 @@
 <script>
      module.exports = {
         name : "Home",
+        props : {
+            resultlogin:Number,
+        },
         data(){
             return{
                 email:"",
@@ -77,38 +80,38 @@
             }
     
         },
+        mounted(){
+            console.log('result-login : ' + this.resultlogin)
+            if (this.resultlogin==1){
+                this.$emit('return-accueil')
+            }
+        }
         
     }
 
 </script>
 
-<style scope>
-
+<style scoped>
 @import url('https://fonts.googleapis.com/css?family=Raleway:400,700');
-
 * {
 	box-sizing: border-box;
 	margin: 0;
 	padding: 0;	
 	font-family: Raleway, sans-serif;
 }
-
 body {
 	background: linear-gradient(90deg, #C7C5F4, #776BCC);	
     	
 }
-
 h1{
     color: #7875B5;
 }
-
 .container {
 	display: flex;
 	align-items: center;
 	justify-content: center;
     min-height: 100vh;
 }
-
 .screen {		
 	background: linear-gradient(90deg, #5D54A4, #7C78B8);		
 	position: relative;	
@@ -116,15 +119,12 @@ h1{
 	width: 360px;	
 	box-shadow: 0px 0px 24px #5C5696;
     border-radius : 20px;
-
 }
-
 .screen__content {
 	z-index: 1;
 	position: relative;	
 	height: 100%;
 }
-
 .screen__background {		
 	position: absolute;
 	top: 0;
@@ -135,12 +135,10 @@ h1{
 	-webkit-clip-path: inset(0 0 0 0);
 	clip-path: inset(0 0 0 0);	
 }
-
 .screen__background__shape {
 	transform: rotate(45deg);
 	position: absolute;
 }
-
 .screen__background__shape1 {
 	height: 520px;
 	width: 520px;
@@ -149,7 +147,6 @@ h1{
 	right: 120px;	
 	border-radius: 0 72px 0 0;
 }
-
 .screen__background__shape2 {
 	height: 220px;
 	width: 220px;
@@ -158,7 +155,6 @@ h1{
 	right: 0;	
 	border-radius: 32px;
 }
-
 .screen__background__shape3 {
 	height: 540px;
 	width: 190px;
@@ -167,7 +163,6 @@ h1{
 	right: 0;	
 	border-radius: 32px;
 }
-
 .screen__background__shape4 {
 	height: 400px;
 	width: 200px;
@@ -176,24 +171,20 @@ h1{
 	right: 50px;	
 	border-radius: 60px;
 }
-
 .login {
 	width: 320px;
 	padding: 30px;
 	padding-top: 70px;
 }
-
 .login__field {
 	padding: 20px 0px;	
 	position: relative;	
 }
-
 .login__icon {
 	position: absolute;
 	top: 30px;
 	color: #7875B5;
 }
-
 .login__input {
 	border: none;
 	border-bottom: 2px solid #D1D1D4;
@@ -204,14 +195,12 @@ h1{
 	width: 75%;
 	transition: .2s;
 }
-
 .login__input:active,
 .login__input:focus,
 .login__input:hover {
 	outline: none;
 	border-bottom-color: #6A679E;
 }
-
 .login__submit {
 	background: #fff;
 	font-size: 14px;
@@ -229,20 +218,17 @@ h1{
 	cursor: pointer;
 	transition: .2s;
 }
-
 .login__submit:active,
 .login__submit:focus,
 .login__submit:hover {
 	border-color: #6A679E;
 	outline: none;
 }
-
 .button__icon {
 	font-size: 24px;
 	margin-left: auto;
 	color: #7875B5;
 }
-
 .change-login {	
 	position: absolute;
 	height: 140px;
@@ -252,7 +238,6 @@ h1{
 	right: 0px;
 	color: #fff;
 }
-
 .change-login button {
 	font-size: 14px;
 	margin-left: auto;
@@ -270,8 +255,5 @@ h1{
 	transition: .2s;
     margin-top: 5px;
 }
-
-
-
 </style>
 
