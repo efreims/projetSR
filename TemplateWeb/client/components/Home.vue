@@ -64,7 +64,7 @@
                 password:"",
                 name:"",
                 city:"",
-                log:false,
+                log:true,
             }
         },
         methods : {
@@ -92,19 +92,8 @@
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css?family=Raleway:400,700');
-* {
-	box-sizing: border-box;
-	margin: 0;
-	padding: 0;	
-	font-family: Raleway, sans-serif;
-}
-body {
-	background: linear-gradient(90deg, #C7C5F4, #776BCC);	
-    	
-}
 h1{
-    color: #7875B5;
+    color: #1270AB;
 }
 .container {
 	display: flex;
@@ -113,12 +102,11 @@ h1{
     min-height: 100vh;
 }
 .screen {		
-	background: linear-gradient(90deg, #5D54A4, #7C78B8);		
+	background: linear-gradient(90deg, #1270AB, #0E3B5A);		
 	position: relative;	
 	height: 600px;
 	width: 360px;	
-	box-shadow: 0px 0px 24px #5C5696;
-    border-radius : 20px;
+	box-shadow: 0px 0px 24px #122938ee;
 }
 .screen__content {
 	z-index: 1;
@@ -133,7 +121,7 @@ h1{
 	bottom: 0;
 	z-index: 0;
 	-webkit-clip-path: inset(0 0 0 0);
-	clip-path: inset(0 0 0 0);	
+	clip-path: inset(0 0 0 0);
 }
 .screen__background__shape {
 	transform: rotate(45deg);
@@ -145,12 +133,12 @@ h1{
 	background: #FFF;	
 	top: -50px;
 	right: 120px;	
-	border-radius: 0 72px 0 0;
+	border-radius : 20px;
 }
 .screen__background__shape2 {
 	height: 220px;
 	width: 220px;
-	background: #6C63AC;	
+	background: #1270AB;	
 	top: -172px;
 	right: 0;	
 	border-radius: 32px;
@@ -158,7 +146,7 @@ h1{
 .screen__background__shape3 {
 	height: 540px;
 	width: 190px;
-	background: linear-gradient(270deg, #5D54A4, #6A679E);
+	background: linear-gradient(270deg, #1270AB, #044f7d);
 	top: -24px;
 	right: 0;	
 	border-radius: 32px;
@@ -166,7 +154,7 @@ h1{
 .screen__background__shape4 {
 	height: 400px;
 	width: 200px;
-	background: #7E7BB9;	
+	background: #1270AB;	
 	top: 420px;
 	right: 50px;	
 	border-radius: 60px;
@@ -183,7 +171,7 @@ h1{
 .login__icon {
 	position: absolute;
 	top: 30px;
-	color: #7875B5;
+	color: #044f7d;
 }
 .login__input {
 	border: none;
@@ -199,7 +187,7 @@ h1{
 .login__input:focus,
 .login__input:hover {
 	outline: none;
-	border-bottom-color: #6A679E;
+	border-bottom-color: #1270AB;
 }
 .login__submit {
 	background: #fff;
@@ -212,22 +200,22 @@ h1{
 	font-weight: 700;
 	display: flex;
 	align-items: center;
-	width: 100%;
-	color: #4C489D;
-	box-shadow: 0px 2px 2px #5C5696;
+	width: max-content;
+	color: #1270AB;
+	box-shadow: 0px 2px 2px #122938ee;
 	cursor: pointer;
 	transition: .2s;
 }
 .login__submit:active,
 .login__submit:focus,
 .login__submit:hover {
-	border-color: #6A679E;
+	border-color: #1270AB;
 	outline: none;
 }
 .button__icon {
 	font-size: 24px;
 	margin-left: auto;
-	color: #7875B5;
+	color: #044f7d;
 }
 .change-login {	
 	position: absolute;
@@ -249,11 +237,10 @@ h1{
 	/* text-transform: uppercase; */
 	text-align: center;
 	width: 80%;
-	color: #4C489D;
-	box-shadow: 0px 2px 2px #5C5696;
+	color: #1270AB;
+	box-shadow: 0px 2px 2px #122938ee;
 	cursor: pointer;
 	transition: .2s;
     margin-top: 5px;
 }
 </style>
-

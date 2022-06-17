@@ -1,7 +1,7 @@
 <template>
     <div>
-        Page réservé aux membres connectés
-        <Conversation @submit-password = "submitpassword" @submit-message="submitmessage" :listmessage="listmessage"> </Conversation>
+        <p>Page réservé aux membres connectés</p>
+        <Conversation @submit-password = "submitpassword" @submit-message="submitmessage" :listmessage="listmessage" class="conversation"> </Conversation>
     </div>
 </template>
 
@@ -37,5 +37,9 @@
 
 </script>
 
-<style>
+<style scoped>
+.conversation{
+    width: 100vw;
+}
+</style>
 
