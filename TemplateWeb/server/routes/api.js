@@ -363,48 +363,67 @@ router.get('/getmessage',(req,res) => {
       //console.log("data :"+dataToPush[0][0])
 
     if (req.cookies.saveMdpDecrypt && req.cookies.saveMdpDecrypt==1){
-      console.log('dans la condition')
-      sequelize.query(`select * from users where userId='${id}'`).then(function(results) {
-        //console.log(results[0][0].privatekey)
-        //console.log('Resultats : '+result[0][0])
 
-        for (let i=0;i<result[0].length;i++){
-          let messageToDecrypt=""
-        if(result[0][i].senderId==id){
-          messageToDecrypt = result[0][i].ciphertextReturn
+  sequelize.query(`select * from users where userId='${id}'`).then(function(results) {
+    //console.log(results[0][0].privatekey)
+    //console.log('Resultats : '+result[0][0])
+
+    for (let i=0;i<result[0].length;i++){
+      let messageToDecrypt=""
+    if(result[0][i].senderId==id){
+      messageToDecrypt = result[0][i].ciphertextReturn
+    }
+    else{
+      messageToDecrypt = result[0][i].ciphertext
+    }
+    console.log("Message a decrypter" + messageToDecrypt)
+    const data_to_pass_in = {
+      data_sent: results[0][0].privatekey+'.'+result[0][0].n+'.'+messageToDecrypt,
+      data_returned: undefined
+    };
+    const spawner = require('child_process').spawn
+    const python_process = spawner('python', ['C:/Users/lefev/projetSR-devtemp/TemplateWeb/server/routes/Decypher.py', JSON.stringify(data_to_pass_in)])
+    python_process.stdout.on('data', (data2) => {
+        console.log(data2.toString())
+        var send;
+        if (result[0][i].senderId==id)
+          send=true
+        else 
+          send=false
+        ListMessageDecrypt.push({idMessage:result[0][i].messageId,message:data2.toString(),date:result[0][i].messageDate,send:send})
+        console.log('Liste en cours' + ListMessageDecrypt)
+        console.log('taille : ' + ListMessageDecrypt.length)
+       if(ListMessageDecrypt.length==result[0].length){
+          ListMessageDecrypt.sort((a, b) => a.idMessage - b.idMessage);
+          res.json({liste:ListMessageDecrypt})
+       }
+      })
+          //console.log('Liste final' +ListMessageDecrypt)
+          //ListMessageDecrypt.sort((a, b) => b.idMessage - a.idMessage);
+          //console.log('Liste final' +ListMessageDecrypt)
+        //completed();
+        /*
+        function completed(){
+          console.log('i:'+i+'taille tab : ' + result[0].length)
+          console.log('longeur tab' + ListMessageDecrypt.length)
+          if (ListMessageDecrypt.length!=result[0].length-1){
+            console.log('TEST1111111111')
+            return;
+          }
+          else {
+            console.log('finittttttttttttttttt')
+            console.log('tab : ' + ListMessageDecrypt)
+            res.json({liste:ListMessageDecrypt})
+          }
+
+
         }
-        else{
-          messageToDecrypt = result[0][i].ciphertext
-        }
-        console.log("Message a decrypter" + messageToDecrypt)
-        const data_to_pass_in = {
-          data_sent: results[0][0].privatekey+'.'+result[0][0].n+'.'+messageToDecrypt,
-          data_returned: undefined
-        };
-        const spawner = require('child_process').spawn
-        const python_process = spawner('python', ['C:/Users/lefev/projetSR-devtemp/TemplateWeb/server/routes/Decypher.py', JSON.stringify(data_to_pass_in)])
-        python_process.stdout.on('data', (data2) => {
-            console.log(data2.toString())
-            var send;
-            if (result[0][i].senderId==id)
-              send=true
-            else 
-              send=false
-            ListMessageDecrypt.push({message:data2.toString(),date:result[0][i].messageDate,send:send})
-            console.log('Liste en cours' + ListMessageDecrypt)
-            if (i==result[0].length-1){
-              console.log('Liste final' +ListMessageDecrypt)
-              res.json({liste : ListMessageDecrypt})
-            }
-          })
-          console.log('yesy')
-     //console.log("prevate key = " +result[0][0][0])
-      //Decrypter les messages extraits
-        //console.log('i : '+i)
-      }
+        */
+       
+    }
 
 
-    })
+})
     }
     else{
       let listefin= [];
