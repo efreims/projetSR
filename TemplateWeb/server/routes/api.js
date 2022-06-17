@@ -6,7 +6,7 @@ const jwt = require('jsonwebtoken')
 // /!\ Créez les dossiers de destination au cas où avant l'upload
 const multer = require('multer')
 const {Sequelize} = require('sequelize');
-const sequelize = new Sequelize("bddvigenere","root","Fbq6dwab", //Veuillez mettre le mot de passe de la base de donnée
+const sequelize = new Sequelize("bddvigenere","root","A1515xc1Dguv59zt", //Veuillez mettre le mot de passe de la base de donnée
 {
   dialect: "mysql",
   host: "localhost",
@@ -104,7 +104,7 @@ router.get('/deco',(req,res) => {
     httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
     secure: true, //Uniquement sur https
   })
-  res.cookie('saveMdpDecrypt','',{
+  res.cookie('saveMdpDecrypt',0,{
     httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
     secure: true, //Uniquement sur https
   })
@@ -123,7 +123,7 @@ router.post('/login', (req,res) => {
     {
       res.json({
         status: false,
-        message: 'User not found'
+        error: 'User not found'
       })
     } 
     else 
@@ -240,7 +240,7 @@ router.post('/sign', (req,res) => {
         else {
           console.log('Crzation')
           const spawner = require('child_process').spawn
-          const python_process = spawner('python', ['C:/Users/lefev/projetSR-devtemp/TemplateWeb/server/routes/generateKeys.py']) // C'est la sauce faut mettre le path global sinon NOOT NOOT
+          const python_process = spawner('python', ['C:/Users/imran/OneDrive/Bureau/Dylan/MasterCamp_Sécurité_Réseaux/Projet_SR/projetSR-main/TemplateWeb/server/routes/generateKeys.py']) // C'est la sauce faut mettre le path global sinon NOOT NOOT
           python_process.stdout.on('data',(data) =>{
             const retrieved = data.toString()
             console.log('Keys created :', retrieved)
@@ -311,10 +311,10 @@ router.post('/sendMessage',(req,res) => {
       };
       console.log(data_to_pass_in);
       console.log(data_to_pass_in2)
-      const python_process = spawner('python', ['C:/Users/lefev/projetSR-devtemp/TemplateWeb/server/routes/Cypher.py', JSON.stringify(data_to_pass_in)])
+      const python_process = spawner('python', ['C:/Users/imran/OneDrive/Bureau/Dylan/MasterCamp_Sécurité_Réseaux/Projet_SR/projetSR-main/TemplateWeb/server/routes/Cypher.py', JSON.stringify(data_to_pass_in)])
       console.log("data is sent");
       python_process.stdout.on('data', (data) => {
-        const python_process2 = spawner('python', ['C:/Users/lefev/projetSR-devtemp/TemplateWeb/server/routes/Cypher.py', JSON.stringify(data_to_pass_in2)])
+        const python_process2 = spawner('python', ['C:/Users/imran/OneDrive/Bureau/Dylan/MasterCamp_Sécurité_Réseaux/Projet_SR/projetSR-main/TemplateWeb/server/routes/Cypher.py', JSON.stringify(data_to_pass_in2)])
         python_process2.stdout.on('data', (data2) => {
         message = data.toString()
         messageForSender = data2.toString()
@@ -322,11 +322,11 @@ router.post('/sendMessage',(req,res) => {
           sequelize.query(`select MAX(messageId) as id from message `).then(function(iDmessage) {
             if(req.body.verifMdpDecrypt==1){
               //On garde le message decrypté
-              res.json({messageId :iDmessage[0][0].id, cyphertext:messageDecrypt,senderId:userSender,receiverId:userReceive,messageDate:date})
+              res.json({message:messageDecrypt,date:date,send:true})
             }
             else{
             //Sinon on envoie la version crypté
-            res.json({messageId :iDmessage[0][0].id, cyphertext:message,senderId:userSender,receiverId:userReceive,messageDate:date})
+            res.json({ message:message,date:date,send:true})
             }
           })
         })
@@ -342,14 +342,93 @@ router.post('/sendMessage',(req,res) => {
 })
 
 router.get('/getmessage',(req,res) => {
+  var finBoucle=0;
+  var ListMessageDecrypt = []
   console.log('yeretetete')
+  const token = req.cookies.log
+  var id=0;
+  //Extrait l'id de l'utilisateur
+  jwt.verify(token,process.env.ACCESS_TOKEN_SECRET, (err,user) =>{//Décrypt le token
+    
+    //req.session.userid = user.userid
+    console.log(user.userID)
+    id =  user.userID
+  })
   const message= req.body.message
   const date = req.body.date
   console.log(date)
-  sequelize.query(`select * from ciphertextForReceiver UNION select * from ciphertextForSender`).then(function(result) {
-
+  sequelize.query(`SELECT * from message join users sender on sender.userId = message.senderId join users receiver on receiver.userId = message.receiverId
+  where receiver.userId='${id}' UNION SELECT * from message join users sender on sender.userId = message.senderId join users receiver on receiver.userId = message.receiverId
+  where sender.userId='${id}';`).then(function(result) {
+    console.log(result[0])
+      //console.log(resultSender)
       //console.log("data :"+dataToPush[0][0])
-    res.json({liste:result[0]})
+
+    if (req.cookies.saveMdpDecrypt && req.cookies.saveMdpDecrypt==1){
+      console.log('dans la condition')
+      sequelize.query(`select * from users where userId='${id}'`).then(function(results) {
+        //console.log(results[0][0].privatekey)
+        //console.log('Resultats : '+result[0][0])
+
+        for (let i=0;i<result[0].length;i++){
+          let messageToDecrypt=""
+        if(result[0][i].senderId==id){
+          messageToDecrypt = result[0][i].ciphertextReturn
+        }
+        else{
+          messageToDecrypt = result[0][i].ciphertext
+        }
+        console.log("Message a decrypter" + messageToDecrypt)
+        const data_to_pass_in = {
+          data_sent: results[0][0].privatekey+'.'+result[0][0].n+'.'+messageToDecrypt,
+          data_returned: undefined
+        };
+        const spawner = require('child_process').spawn
+        const python_process = spawner('python', ['C:/Users/imran/OneDrive/Bureau/Dylan/MasterCamp_Sécurité_Réseaux/Projet_SR/projetSR-main/TemplateWeb/server/routes/Decypher.py', JSON.stringify(data_to_pass_in)])
+        python_process.stdout.on('data', (data2) => {
+            console.log(data2.toString())
+            var send;
+            if (result[0][i].senderId==id)
+              send=true
+            else 
+              send=false
+            ListMessageDecrypt.push({message:data2.toString(),date:result[0][i].messageDate,send:send})
+            console.log('Liste en cours' + ListMessageDecrypt)
+            if (i==result[0].length-1){
+              console.log('Liste final' +ListMessageDecrypt)
+              res.json({liste : ListMessageDecrypt})
+            }
+          })
+          console.log('yesy')
+     //console.log("prevate key = " +result[0][0][0])
+      //Decrypter les messages extraits
+        //console.log('i : '+i)
+      }
+
+
+    })
+    }
+    else{
+      let listefin= [];
+      for (let j=0;j<result[0].length;j++){
+        let send;
+        let messageToSend;
+        if (result[0][j].senderId==id){
+          send = true
+          messageToSend = result[0][j].ciphertextReturn
+        }
+        else{
+          send = false
+          messageToSend = result[0][j].ciphertext
+        }
+        let objectToAdd = {message:messageToSend,date:result[0][j].messageDate,send:send}
+        listefin.push(objectToAdd)
+        //if (i=)
+      }
+      console.log('liste fin = ' + listefin)
+     res.json({liste:listefin})
+    }
+
   })
   /*
   sequelize.query(`select * from message`).then(function(result) {
