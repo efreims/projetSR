@@ -6,7 +6,7 @@ const jwt = require('jsonwebtoken')
 // /!\ Créez les dossiers de destination au cas où avant l'upload
 const multer = require('multer')
 const {Sequelize} = require('sequelize');
-const sequelize = new Sequelize("bddvigenere","admin","vd}:8Eeq`(q=8`S(", //Veuillez mettre le mot de passe de la base de donnée
+const sequelize = new Sequelize("bddvigenere","admin","vd}:8Eeq`(q=8`S(", 
 {
   dialect: "mysql",
   host: "database-mastercamp.ceb4nhtb3nme.eu-west-2.rds.amazonaws.com",
@@ -239,9 +239,20 @@ router.post('/sign', (req,res) => {
           })
         } 
         else {
-          console.log('Crzation')
+
+          const Path = require('path')
+
+          let path = Path.join(__dirname, "./generateRSAKeys.py")
+
+          const char = "\\"
+
+          while( path.indexOf(char) != -1){
+            console.log(path.indexOf(char))
+            path = path.replace(char,'/')
+          }
+
           const spawner = require('child_process').spawn
-          const python_process = spawner('python', ['C:/Users/lefev/Proto_final/generateRSAKeys.py']) // C'est la sauce faut mettre le path global sinon NOOT NOOT
+          const python_process = spawner('python', [path]) // C'est la sauce faut mettre le path global sinon NOOT NOOT
           python_process.stdout.on('data',(data) =>{
             const retrieved = data.toString()
             console.log('Keys created :', retrieved)
@@ -312,10 +323,22 @@ router.post('/sendMessage',(req,res) => {
       };
       console.log(data_to_pass_in);
       console.log(data_to_pass_in2)
-      const python_process = spawner('python', ['C:/Users/lefev/projetSR-devtemp/TemplateWeb/server/routes/Cypher.py', JSON.stringify(data_to_pass_in)])
+
+      const Path = require('path')
+
+          let path = Path.join(__dirname, "./Cypher.py")
+
+          const char = "\\"
+
+          while( path.indexOf(char) != -1){
+            console.log(path.indexOf(char))
+            path = path.replace(char,'/')
+          }
+
+      const python_process = spawner('python', [path, JSON.stringify(data_to_pass_in)])
       console.log("data is sent");
       python_process.stdout.on('data', (data) => {
-        const python_process2 = spawner('python', ['C:/Users/lefev/projetSR-devtemp/TemplateWeb/server/routes/Cypher.py', JSON.stringify(data_to_pass_in2)])
+        const python_process2 = spawner('python', [path, JSON.stringify(data_to_pass_in2)])
         python_process2.stdout.on('data', (data2) => {
         message = data.toString()
         messageForSender = data2.toString()
@@ -345,7 +368,6 @@ router.post('/sendMessage',(req,res) => {
 router.get('/getmessage',(req,res) => {
   var finBoucle=0;
   var ListMessageDecrypt = []
-  console.log('yeretetete')
   const token = req.cookies.log
   var id=0;
   //Extrait l'id de l'utilisateur
@@ -381,8 +403,21 @@ router.get('/getmessage',(req,res) => {
       data_sent: results[0][0].privatekey+'.'+result[0][0].n+'.'+messageToDecrypt,
       data_returned: undefined
     };
+
+    const Path = require('path')
+
+          let path = Path.join(__dirname, "./Decypher.py")
+
+          const char = "\\"
+
+          while( path.indexOf(char) != -1){
+            console.log(path.indexOf(char))
+            path = path.replace(char,'/')
+          }
+
+
     const spawner = require('child_process').spawn
-    const python_process = spawner('python', ['C:/Users/lefev/projetSR-devtemp/TemplateWeb/server/routes/Decypher.py', JSON.stringify(data_to_pass_in)])
+    const python_process = spawner('python', [path, JSON.stringify(data_to_pass_in)])
     python_process.stdout.on('data', (data2) => {
         console.log(data2.toString())
         var send;
