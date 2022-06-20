@@ -50,13 +50,11 @@
 </script>
 
 <style scoped>
-
 .container{
     display:flex;
     flex-direction : column;
     width: 100%;
 }
-
 input {
 	border: none;
 	border-bottom: 2px solid #D1D1D4;
@@ -67,14 +65,12 @@ input {
 	transition: .2s;
     flex-grow: 1;
 }
-
 input:active,
 input:focus,
 input:hover {
 	outline: none;
 	border-bottom-color: #1270AB;
 }
-
 button {
 	background: #fff;
 	font-size: 0.7em;
@@ -92,27 +88,21 @@ button {
 	cursor: pointer;
 	transition: .2s;
 }
-
 button:active,
 button:focus,
 button:hover {
 	border-color: #1270AB;
 	outline: none;
 }
-
 form{
     display : flex;
     align-self: flex-end;
     margin-bottom: 15px;
 }
-
-
 .conv{
     display: flex;
     flex-direction: column;
 }
-
-
 .message{
     padding : 15px;
     background: #1270AB;
@@ -121,27 +111,20 @@ form{
     border-radius: 1.3rem;
     font-weight: 500;
 }
-
 .messageLeft{
     align-self : flex-end;
     margin-bottom: 15px;
 }
-
 /* .messageLeft .message{
     background: rgb(83, 152, 196);
 } */
-
 .messageRight{
     align-self : flex-start;
     margin-bottom: 15px;
 }
-
 .date{
     font-size: 0.7em;
     color : #7a8388;
 }
-
-
-
 </style>
 

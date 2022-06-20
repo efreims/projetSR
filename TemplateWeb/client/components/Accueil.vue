@@ -2,6 +2,9 @@
     <div>
         <p>Page réservé aux membres connectés</p>
         <Conversation @submit-password = "submitpassword" @submit-message="submitmessage" :listmessage="listmessage" class="conversation"> </Conversation>
+        <Listemembres @ajout-ami="ajoutAmi" :listemembres="listemembres"></Listemembres>
+        <Notifami @accept-ami="acceptAmi" :listnotifami="listnotifami"></Notifami>
+        <Sectionami :listami="listami"></Sectionami>
     </div>
 </template>
 
@@ -10,10 +13,17 @@
         name : "Accueil",
         props: {
             resultlogin:Number,
-            listmessage:Array
+            listmessage:Array,
+            listemembres:Array,
+            listnotifami : Array,
+            listami : Array
+
         },
         components:{
-            Conversation
+            Conversation,
+            Listemembres,
+            Notifami,
+            Sectionami,
         },
         data(){
             return{
@@ -27,6 +37,12 @@
             },
              submitpassword(password){
                 this.$emit('submit-password',password)
+            },
+            ajoutAmi(id){
+                this.$emit('ajout-ami',{id : id})
+            },
+            acceptAmi(relationId){
+                this.$emit('accept-ami',relationId)
             }
     
         },
@@ -38,9 +54,8 @@
 </script>
 
 <style scoped>
-
 .conversation{
     width: 100vw;
 }
-
 </style>
+
