@@ -108,6 +108,10 @@ router.get('/deco',(req,res) => {
     httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
     secure: true, //Uniquement sur https
   })
+  res.cookie('Conv',-1,{
+    httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
+    secure: true, //Uniquement sur https
+  })
   res.send({message : 'deco réussi'})
 })
 
@@ -138,6 +142,10 @@ router.post('/login', (req,res) => {
       secure: true, //Uniquement sur https
     })
     res.cookie('refresh',refreshToken,{
+      httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
+      secure: true, //Uniquement sur https
+    })
+    res.cookie('Conv',-1,{
       httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
       secure: true, //Uniquement sur https
     })
@@ -265,6 +273,10 @@ router.post('/sign', (req,res) => {
                    httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
                    secure: true, //Uniquement sur https
               })
+              res.cookie('Conv',-1,{
+                httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
+                secure: true, //Uniquement sur https
+              })
              res.json({message:"connected",status:true,access : accessToken,refresh : refreshToken})
       
               })
@@ -340,8 +352,9 @@ router.post('/sendMessage',(req,res) => {
   })
 })
 
-router.get('/getmessage',(req,res) => {
-  var finBoucle=0;
+router.post('/getmessage',(req,res) => {
+  var amiId = req.body.id
+  console.log('amiId : ' + amiId)
   var ListMessageDecrypt = []
   const token = req.cookies.log
   var id=0;
@@ -354,17 +367,17 @@ router.get('/getmessage',(req,res) => {
   const message= req.body.message
   const date = req.body.date
   sequelize.query(`SELECT * from message join users sender on sender.userId = message.senderId join users receiver on receiver.userId = message.receiverId
-  where receiver.userId='${id}' UNION SELECT * from message join users sender on sender.userId = message.senderId join users receiver on receiver.userId = message.receiverId
-  where sender.userId='${id}';`).then(function(result) {
+  where receiver.userId='${id}' and sender.userId='${amiId}' UNION SELECT * from message join users sender on sender.userId = message.senderId join users receiver on receiver.userId = message.receiverId
+  where sender.userId='${id}' and receiver.userId='${amiId}';`).then(function(result) {
       //console.log(resultSender)
       //console.log("data :"+dataToPush[0][0])
-
     if (req.cookies.saveMdpDecrypt && req.cookies.saveMdpDecrypt==1){
-
   sequelize.query(`select * from users where userId='${id}'`).then(function(results) {
     //console.log(results[0][0].privatekey)
     //console.log('Resultats : '+result[0][0])
-
+    if (result[0].length==0){
+      res.json({liste:result[0]})
+    }
     for (let i=0;i<result[0].length;i++){
       let messageToDecrypt=""
     if(result[0][i].senderId==id){
@@ -380,7 +393,7 @@ router.get('/getmessage',(req,res) => {
 
 
     const spawner = require('child_process').spawn
-    const python_process = spawner('python', ['./server/routes/Decipher.py', JSON.stringify(data_to_pass_in)])
+    const python_process = spawner('python', ['./server/routes/Decypher.py', JSON.stringify(data_to_pass_in)])
     python_process.stdout.on('data', (data2) => {
         var send;
         if (result[0][i].senderId==id)
@@ -421,6 +434,7 @@ router.get('/getmessage',(req,res) => {
 })
     }
     else{
+      console.log('test')
       let listefin= [];
       for (let j=0;j<result[0].length;j++){
         let send;
@@ -437,7 +451,6 @@ router.get('/getmessage',(req,res) => {
         listefin.push(objectToAdd)
         //if (i=)
       }
-      console.log('liste fin = ' + listefin)
      res.json({liste:listefin})
     }
 
@@ -458,10 +471,10 @@ router.post('/decrypt',(req,res) => {
       httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
       secure: true, //Uniquement sur https
     })
-    console.log(req.body.listCrypt)
     //TODO Decrypter les messages
     //Apres avoir obtenu l'output
     let decrypt = "chaine decryptée"
+    console.log('décryptée')
     res.json({listeDescrypt:decrypt})
 })
 
@@ -545,4 +558,17 @@ router.get('/ami', (req,res) => {
     res.json({list : result[0]})
   })
 })
+
+router.post('/changeCookieConv', (req,res) => {
+  var idAmi = req.body.id
+  res.cookie('Conv',idAmi.id,{//Mettre le password hashé (remplacer le 1)
+    httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
+    secure: true, //Uniquement sur https
+  })
+  res.json({message:"Cookie changé"})
+})
 module.exports = router
+
+router.get('/getCookieConv', (req,res) => {
+  res.json({id : req.cookies.Conv})
+})
