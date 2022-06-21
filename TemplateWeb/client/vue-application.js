@@ -3,6 +3,10 @@
 const Home = window.httpVueLoader('./components/Home.vue')
 const Accueil = window.httpVueLoader('./components/Accueil.vue')
 const Conversation = window.httpVueLoader('./components/Conversation.vue')
+const Listemembres = window.httpVueLoader('./components/Listemembres.vue')
+const Notifami = window.httpVueLoader('./components/Notifami.vue')
+const Sectionami = window.httpVueLoader('./components/Sectionami.vue')
+
 var refreshToken;
 
 axios.interceptors.response.use((response) => {
@@ -81,6 +85,9 @@ var app = new Vue(
     resultlogin:0,
     listmessage:[],
     verifMdpDecrypt:0,
+    listemembres:[],
+    listnotifami:[],
+    listami:[],
   },
   components: 
   {
@@ -102,8 +109,18 @@ var app = new Vue(
       //console.log(valeurMdpDecrypt.data.cookiemdp)
       this.verifMdpDecrypt = valeurMdpDecrypt.data.cookiemdp
      // console.log(listMessage.data.liste)
-
-    
+      const listUsers = await axios.get('/api/getusers');
+      this.listemembres = []
+      this.listemembres.push(listUsers.data.liste);
+      this.listemembres = this.listemembres[0]
+      const notif = await axios.get('/api/notifami')
+      this.listnotifami.push(notif.data.listnotif)
+      this.listnotifami = this.listnotifami[0]
+      const ami = await axios.get('/api/ami')
+      this.listami=[]
+      this.listami.push(ami.data.list)
+      this.listami =  this.listami[0]
+     //console.log(ami)
   },
   methods: 
   {
@@ -118,6 +135,18 @@ var app = new Vue(
         this.resultlogin = 1;
         const listMessage = await axios.get('/api/getmessage')
         this.listmessage.push(listMessage.data.liste)
+        const listUsers = await axios.get('/api/getusers');
+        this.listemembres = []
+        this.listemembres.push(listUsers.data.liste);
+        console.log('test : ' + listUsers.data.liste)
+        this.listemembres = this.listemembres[0]
+        const notif = await axios.get('/api/notifami')
+        this.listnotifami.push(notif.data.listnotif)
+        this.listnotifami = this.listnotifami[0]
+        const ami = await axios.get('/api/ami')
+        this.listami=[]
+        this.listami.push(ami.data.list)
+        this.listami =  this.listami[0]
         this.$router.push('/accueil');
       }
       
@@ -152,6 +181,10 @@ var app = new Vue(
         axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.access}`;
         refreshToken = res.data.refresh
         this.resultlogin = 1;
+        const listUsers = await axios.get('/api/getusers');
+        this.listemembres = []
+        this.listemembres.push(listUsers.data.liste);
+        this.listemembres = this.listemembres[0]
         this.$router.push('/accueil');
       }
     },
@@ -195,6 +228,13 @@ var app = new Vue(
     },
     async returnAccueil (){
       router.push('/accueil')
+    },
+    async ajoutAmi(user){
+      const res = await axios.post('/api/ajoutami',{id : user.id})
+    },
+    async acceptAmi(relationId){
+      console.log(relationId)
+      const res = await axios.post('/api/acceptAmi',{relationId : relationId})
     }
     
   }

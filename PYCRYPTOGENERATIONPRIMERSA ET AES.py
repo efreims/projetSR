@@ -13,7 +13,7 @@ def generate_prime_number(bits):
     return number.getPrime(bits)
 
 
-#print('p =', generate_prime_number(2048))
+print('p =', generate_prime_number(2048))
 
 # generate rsa keys and print them out
 
@@ -23,7 +23,6 @@ def generate_rsa_keys(bits):
     q = generate_prime_number(bits)
     n = p * q
     phi = (p - 1) * (q - 1)
-    print("phi="+str(phi))
     e = number.getRandomRange(1, phi)
     g = GCD(e, phi)
     while g != 1:
@@ -35,24 +34,17 @@ def generate_rsa_keys(bits):
 t = generate_rsa_keys(2048)
 
 
-#print('\nRSA keys:')
+print('\nRSA keys:')
  
-#print('\n')
-e = t[0][0]
-n = t[0][1]
-d = t[1][0]
-#print("e=" + str(e))
-#print("n=" + str(n))
-#print("d=" + str(d))
-output = str(e)+" "+str(d)+" "+str(n)
-print(output)
-#print('Public key: (e, n) =', t[0])
-#print('Private key: (d, n) =', t[1])
+print('\n')
+
+print('Public key: (e, n) =', t[0])
+print('Private key: (d, n) =', t[1])
 
 
 # AES on t[1][0]
-#cipheredkey = AES.new(t[1][0],AES.MODE_EAX).encrypt('hello')
-#print('\nAES key:', cipheredkey)
+cipheredkey = AES.new(t[1][0],AES.MODE_EAX).encrypt('hello')
+print('\nAES key:', cipheredkey)
 
 # cipheredkey = AES.new(t[1][0]).encrypt('Hello World')
 # print('\nAES on private key:', cipheredkey)

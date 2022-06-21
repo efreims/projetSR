@@ -6,13 +6,15 @@ const jwt = require('jsonwebtoken')
 // /!\ Créez les dossiers de destination au cas où avant l'upload
 const multer = require('multer')
 const {Sequelize} = require('sequelize');
-const sequelize = new Sequelize("bddvigenere","admin","vd}:8Eeq`(q=8`S(", 
+
+const sequelize = new Sequelize("bddvigenere","admin","vd}:8Eeq`(q=8`S(", //Veuillez mettre le mot de passe de la base de donnée
 {
   dialect: "mysql",
   host: "database-mastercamp.ceb4nhtb3nme.eu-west-2.rds.amazonaws.com",
   port: 3306 // Changer le port si vous utilisez un autre port que 3306
 
 });
+
 try 
 { 
   sequelize.authenticate();
@@ -87,7 +89,6 @@ router.use((req, res, next) => {
 router.get('/verif', autoToken, (req,res) => {
   //console.log(req.cookies)
   //console.log('res : ' + res)
-  console.log("verif...")
   //console.log(req.status)
   if(req.user)
     res.send({status:true, user : req.user,refresh : req.cookies.refresh,acces: req.cookies.log})
@@ -157,7 +158,7 @@ router.post('/login', (req,res) => {
 
 router.post('/refreshToken', (req, res) => {
   const token = req.cookies.refresh
-  console.log('TOKEN REFRESH' + token)
+
   // const authHeader = req.cookies.refresh
   //const token = authHeader && authHeader.split(' ')[1]
 
@@ -219,6 +220,7 @@ router.get('/retourLogin', (req,res) => {
 })
 
 router.post('/sign', (req,res) => {
+  var id = 0;
   const email = req.body.email
   const password = req.body.password
   const city = req.body.city
@@ -239,30 +241,19 @@ router.post('/sign', (req,res) => {
           })
         } 
         else {
-
-          const Path = require('path')
-
-          let path = Path.join(__dirname, "./generateRSAKeys.py")
-
-          const char = "\\"
-
-          while( path.indexOf(char) != -1){
-            console.log(path.indexOf(char))
-            path = path.replace(char,'/')
-          }
-
+         
           const spawner = require('child_process').spawn
-          const python_process = spawner('python', [path]) // C'est la sauce faut mettre le path global sinon NOOT NOOT
+          const python_process = spawner('python', ['./server/routes/generateRSAkeys.py'])
           python_process.stdout.on('data',(data) =>{
             const retrieved = data.toString()
-            console.log('Keys created :', retrieved)
             const result_list = retrieved.split(' ')
             const private = result_list[1]
             const public = result_list[0]
             const n = result_list[2]
 
             sequelize.query(`insert into users(name, email ,password ,admin,city,privatekey,publickey,n) values ('${name}','${email}','${hash}','0','${city}','${private}','${public}','${n}')`).then(function(result) {
-              const accessToken = generateAcessToken({email : email,password:this.password})
+              console.log('Resultats : ' + result[0])
+              const accessToken = generateAcessToken({email : email,password:this.password,userID : result[0]})
               const refreshToken = generateRefreshToken({email : email,password:this.password})
               
     
@@ -285,7 +276,6 @@ router.post('/sign', (req,res) => {
         }
       })
     }
-    console.log(hash) 
   })
   
   
@@ -297,14 +287,11 @@ router.post('/sendMessage',(req,res) => {
   var messageDecrypt= req.body.message
   const date = req.body.date
   const spawner = require('child_process').spawn
-  console.log(date)
   token = req.cookies.log
   jwt.verify(token,process.env.ACCESS_TOKEN_SECRET, (err,user) =>{//Décrypt le token
     if(err){
-      console.log('PAS BON')
       return res.sendStatus(401)
     }
-    console.log('Idsender : ' + user.userID)
     const userSender = user.userID
     let userReceive = 0
     if(userSender == 1)
@@ -322,23 +309,11 @@ router.post('/sendMessage',(req,res) => {
         data_returned: undefined
       };
       console.log(data_to_pass_in);
-      console.log(data_to_pass_in2)
-
-      const Path = require('path')
-
-          let path = Path.join(__dirname, "./Cypher.py")
-
-          const char = "\\"
-
-          while( path.indexOf(char) != -1){
-            console.log(path.indexOf(char))
-            path = path.replace(char,'/')
-          }
-
-      const python_process = spawner('python', [path, JSON.stringify(data_to_pass_in)])
-      console.log("data is sent");
+      console.log(data_to_pass_in2);
+      
+      const python_process = spawner('python', ['./server/routes/Cypher.py', JSON.stringify(data_to_pass_in)])
       python_process.stdout.on('data', (data) => {
-        const python_process2 = spawner('python', [path, JSON.stringify(data_to_pass_in2)])
+        const python_process2 = spawner('python', ['C:/Users/lefev/projetSR-devtemp/TemplateWeb/server/routes/Cypher.py', JSON.stringify(data_to_pass_in2)])
         python_process2.stdout.on('data', (data2) => {
         message = data.toString()
         messageForSender = data2.toString()
@@ -398,36 +373,21 @@ router.get('/getmessage',(req,res) => {
     else{
       messageToDecrypt = result[0][i].ciphertext
     }
-    console.log("Message a decrypter" + messageToDecrypt)
     const data_to_pass_in = {
       data_sent: results[0][0].privatekey+'.'+result[0][0].n+'.'+messageToDecrypt,
       data_returned: undefined
     };
 
-    const Path = require('path')
-
-          let path = Path.join(__dirname, "./Decypher.py")
-
-          const char = "\\"
-
-          while( path.indexOf(char) != -1){
-            console.log(path.indexOf(char))
-            path = path.replace(char,'/')
-          }
-
 
     const spawner = require('child_process').spawn
-    const python_process = spawner('python', [path, JSON.stringify(data_to_pass_in)])
+    const python_process = spawner('python', ['./server/routes/Decipher.py', JSON.stringify(data_to_pass_in)])
     python_process.stdout.on('data', (data2) => {
-        console.log(data2.toString())
         var send;
         if (result[0][i].senderId==id)
           send=true
         else 
           send=false
         ListMessageDecrypt.push({idMessage:result[0][i].messageId,message:data2.toString(),date:result[0][i].messageDate,send:send})
-        console.log('Liste en cours' + ListMessageDecrypt)
-        console.log('taille : ' + ListMessageDecrypt.length)
        if(ListMessageDecrypt.length==result[0].length){
           ListMessageDecrypt.sort((a, b) => a.idMessage - b.idMessage);
           res.json({liste:ListMessageDecrypt})
@@ -526,5 +486,63 @@ router.get('/verifCookieLog',(req,res) => {
     }
   })
   
+})
+
+router.get('/getusers', (req,res) => {
+  var id=0
+  token = req.cookies.log
+  jwt.verify(token,process.env.ACCESS_TOKEN_SECRET, (err,user) =>{//Décrypt le token
+    //req.session.userid = user.userid
+    console.log(user.userID)
+    id =  user.userID
+  })
+  console.log('userid : '+id)
+  sequelize.query(`select * from users where userID!='${id}'`).then(function(result) {
+    res.json({liste:result[0]})
+  })
+})
+
+router.post('/ajoutami', (req,res) => {
+  var idSender = 0
+  jwt.verify(token,process.env.ACCESS_TOKEN_SECRET, (err,user) =>{//Décrypt le token
+    //req.session.userid = user.userid
+    console.log(user.userID)
+    idSender =  user.userID
+  })
+  var idReceiver = req.body.id
+  sequelize.query(`insert into ami(senderId, receiverId, etat) values ('${idSender}','${idReceiver}','false')`).then(function(result) {
+
+
+  })
+})
+
+router.get('/notifami', (req,res) => {
+  var userID = 0
+  jwt.verify(token,process.env.ACCESS_TOKEN_SECRET, (err,user) =>{//Décrypt le token
+    //req.session.userid = user.userid
+    userID =  user.userID
+  })
+  sequelize.query(`select users.name, ami.relationId from ami join users on ami.receiverId=users.userId where receiverId='${userID}' and etat='false'`).then(function(result) {
+    console.log('notif : ' + result[0])
+    res.json({listnotif : result[0]})
+  })
+})
+
+router.post('/acceptAmi', (req,res) => {
+  var id = req.body.relationId
+  sequelize.query(`UPDATE ami SET etat=true where relationId=${id}`).then(function(result) {
+    res.json({message:"demande acceptée"})
+  })
+})
+
+router.get('/ami', (req,res) => {
+  var userID = 0
+  jwt.verify(token,process.env.ACCESS_TOKEN_SECRET, (err,user) =>{//Décrypt le token
+    //req.session.userid = user.userid
+    userID =  user.userID
+  })
+  sequelize.query(`select users.name as name, ami.receiverId as amiId from ami join users on users.userId=ami.receiverId where senderId=${userID} and etat=true UNION select users.name as name, ami.senderId as amiId from ami join users on users.userId=ami.senderId where receiverId=${userID} and etat=true`).then(function(result) {
+    res.json({list : result[0]})
+  })
 })
 module.exports = router
