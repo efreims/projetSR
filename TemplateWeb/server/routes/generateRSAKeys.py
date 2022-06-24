@@ -23,7 +23,6 @@ def generate_rsa_keys(bits):
     q = generate_prime_number(bits)
     n = p * q
     phi = (p - 1) * (q - 1)
-    print("phi="+str(phi))
     e = number.getRandomRange(1, phi)
     g = GCD(e, phi)
     while g != 1:
