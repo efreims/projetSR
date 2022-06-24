@@ -1,10 +1,10 @@
 <template>
     <div>
         <p>Page réservé aux membres connectés</p>
-        <Conversation @submit-password = "submitpassword" @submit-message="submitmessage" :listmessage="listmessage" class="conversation"> </Conversation>
+        <Conversation @submit-password = "submitpassword" @submit-message="submitmessage" :listmessage="listmessage" :onconv="onconv" class="conversation"> </Conversation>
         <Listemembres @ajout-ami="ajoutAmi" :listemembres="listemembres"></Listemembres>
         <Notifami @accept-ami="acceptAmi" :listnotifami="listnotifami"></Notifami>
-        <Sectionami :listami="listami"></Sectionami>
+        <Sectionami @afficher-conv="afficherConv" :listami="listami"></Sectionami>
     </div>
 </template>
 
@@ -16,8 +16,8 @@
             listmessage:Array,
             listemembres:Array,
             listnotifami : Array,
-            listami : Array
-
+            listami : Array,
+            onconv : Number
         },
         components:{
             Conversation,
@@ -26,8 +26,8 @@
             Sectionami,
         },
         data(){
-            return{
-                
+            return {
+
             }
         },
         methods : {
@@ -43,6 +43,10 @@
             },
             acceptAmi(relationId){
                 this.$emit('accept-ami',relationId)
+            },
+            afficherConv(id){
+                this.onConv = id
+                this.$emit('afficher-conv',{id : id})
             }
     
         },

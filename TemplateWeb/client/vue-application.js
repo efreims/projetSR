@@ -88,6 +88,7 @@ var app = new Vue(
     listemembres:[],
     listnotifami:[],
     listami:[],
+    onconv:-1
   },
   components: 
   {
@@ -100,11 +101,7 @@ var app = new Vue(
       }
       const veriflog = await axios.get('/api/verifCookieLog')
       if (veriflog.data.verif==true)
-      {
-        const listMessage = await axios.get('/api/getmessage')
-        console.log(listMessage.data.liste)
-        this.listmessage.push(listMessage.data.liste)
-      }
+        {
       const valeurMdpDecrypt = await axios.get('/api/verifMdpDecrypt')
       //console.log(valeurMdpDecrypt.data.cookiemdp)
       this.verifMdpDecrypt = valeurMdpDecrypt.data.cookiemdp
@@ -120,6 +117,14 @@ var app = new Vue(
       this.listami=[]
       this.listami.push(ami.data.list)
       this.listami =  this.listami[0]
+        const idConv = await axios.get('/api/getCookieConv')
+        this.onconv = parseInt(idConv.data.id)
+        this.listmessage = []
+        if (this.onconv!=-1){
+          const listMessage = await axios.post('/api/getmessage',{id : idConv.data.id})
+          this.listmessage.push(listMessage.data.liste)
+        }
+        }
      //console.log(ami)
   },
   methods: 
@@ -133,12 +138,9 @@ var app = new Vue(
         axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.access}`;
         refreshToken = res.data.refresh
         this.resultlogin = 1;
-        const listMessage = await axios.get('/api/getmessage')
-        this.listmessage.push(listMessage.data.liste)
         const listUsers = await axios.get('/api/getusers');
         this.listemembres = []
         this.listemembres.push(listUsers.data.liste);
-        console.log('test : ' + listUsers.data.liste)
         this.listemembres = this.listemembres[0]
         const notif = await axios.get('/api/notifami')
         this.listnotifami.push(notif.data.listnotif)
@@ -147,6 +149,7 @@ var app = new Vue(
         this.listami=[]
         this.listami.push(ami.data.list)
         this.listami =  this.listami[0]
+        
         this.$router.push('/accueil');
       }
       
@@ -197,32 +200,34 @@ var app = new Vue(
       const minutes = date.getMinutes()
       const fulldate = day+ '/'+ month + '/' + year + ' ' + heures + ':' + minutes
       const res = await axios.post('/api/sendMessage', {message:message,date:fulldate,verifMdpDecrypt:this.verifMdpDecrypt})
-      console.log(res.data.user)
-      console.log(res.data)
-      console.log(this.listmessage)
       this.listmessage[0].push(res.data)
     },
     async submitpassword(password){
-      console.log('ca marche : '+password)
       if (password=="123"){
         console.log("mdp OK")
         console.log(this.listmessage)
         const res = await axios.post('/api/decrypt', {listCrypt : this.listmessage})
         //this.listmessage = res.data.listeDescrypt
         this.verifMdpDecrypt=1
-        console.log(res.data.listeDescrypt)
-        const listMessage = await axios.get('/api/getmessage')
+
+        const listMessage = await axios.post('/api/getmessage',{id : this.onconv})
         this.listmessage = []
+        console.log("Sur la conv : ")
         this.listmessage.push(listMessage.data.liste)
       }
         
 
     },
     async loadData(){
+        const idConv = await axios.get('/api/getCookieConv')
+        console.log('idConv = '+ idConv.data.id)
+        this.onconv = parseInt(idConv.data.id)
         const veriflog = await axios.get('/api/verifCookieLog')
         if (veriflog.data.verif==true)
         {
-          const listMessage = await axios.get('/api/getmessage')
+          console.log('yes')
+          const listMessage = await axios.post('/api/getmessage',{id : idConv.data.id})
+          this.listmessage = []
           this.listmessage.push(listMessage.data.liste)
         }
     },
@@ -235,6 +240,19 @@ var app = new Vue(
     async acceptAmi(relationId){
       console.log(relationId)
       const res = await axios.post('/api/acceptAmi',{relationId : relationId})
+    },
+    async afficherConv(amiId){
+      const cookie = await axios.post('/api/changeCookieConv',{id : amiId})
+      const veriflog = await axios.get('/api/verifCookieLog')
+      if (veriflog.data.verif==true)
+      {
+        console.log('dedans')
+        console.log('dedans2 : ' + amiId.id)
+        const listMessage = await axios.post('/api/getmessage',{id : amiId.id})
+        this.listmessage = []
+        this.listmessage.push(listMessage.data.liste)
+        console.log(this.listmessage)
+      }
     }
     
   }

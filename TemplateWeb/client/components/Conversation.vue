@@ -1,5 +1,8 @@
 <template>
     <div class="container">
+         <p v-if="onconv==-1" class="temp">
+            Veuillez selectionner une conversation
+        </p>
         <div v-for="(message,index) in listmessage[0]" :key="index" class="conv">
             <div class="messageLeft" v-bind:class="{ messageRight : !message.send}">
                 <p class="message"> {{message.message}}</p>
@@ -7,12 +10,12 @@
             </div>
         </div> 
 
-        <form @submit.prevent="submitmessage">
+        <form v-if="onconv!=-1" @submit.prevent="submitmessage">
             <input type="txt" placeholder="votre message" v-model="messagesend">
             <button>Envoyer</button>
         </form>
 
-        <form @submit.prevent="submitpassword">
+        <form v-if="onconv!=-1" @submit.prevent="submitpassword">
             <input type="password" placeholder="Tapez votre mdp" v-model="passwordDecrypt">
             <button>Envoyer</button>
         </form>
@@ -24,7 +27,8 @@
         name : "Accueil",
         props: {
             resultlogin:Number,
-            listmessage:Array
+            listmessage:Array,
+            onconv:Number
         },
         data(){
             return{
@@ -125,6 +129,10 @@ form{
 .date{
     font-size: 0.7em;
     color : #7a8388;
+}
+
+.temp{
+    color:green
 }
 </style>
 
