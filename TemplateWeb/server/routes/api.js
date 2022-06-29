@@ -30,6 +30,10 @@ function generateAcessToken(user){
   return jwt.sign(user,process.env.ACCESS_TOKEN_SECRET,{expiresIn:'7200s'})
 }
 
+function generateRSAToken(user){
+  return jwt.sign(user,process.env.ACCESS_TOKEN_SECRET,{expiresIn:'1y'})
+}
+
 function generateRefreshToken(user){
   return jwt.sign(user,process.env.REFRESH_TOKEN_SECRET,{expiresIn:'1y'})
 }
@@ -109,6 +113,10 @@ router.get('/deco',(req,res) => {
     secure: true, //Uniquement sur https
   })
   res.cookie('Conv',-1,{
+    httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
+    secure: true, //Uniquement sur https
+  })
+  res.cookie('rsakey','',{
     httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
     secure: true, //Uniquement sur https
   })
@@ -373,8 +381,12 @@ router.post('/getmessage',(req,res) => {
   console.log('amiId : ' + amiId)
   var ListMessageDecrypt = []
   const token = req.cookies.log
+  const rsakeys = req.cookies.rsakey
   var id=0;
-  var password
+  var test;
+  var password;
+  var privatekey;
+  var iv;
   //Extrait l'id de l'utilisateur
   jwt.verify(token,process.env.ACCESS_TOKEN_SECRET, (err,user) =>{//Décrypt le token
     //req.session.userid = user.userid
@@ -391,20 +403,20 @@ router.post('/getmessage',(req,res) => {
       //console.log("data :"+dataToPush[0][0])
     if (req.cookies.saveMdpDecrypt && req.cookies.saveMdpDecrypt==1){
   sequelize.query(`select * from users where userId='${id}'`).then(function(results) {
+    jwt.verify(rsakeys,process.env.ACCESS_TOKEN_SECRET, (err,keys) =>{//Décrypt le token
+      //req.session.userid = user.userid
+      privatekey = keys.privatekey
+    })
+    console.log('privatekey : ' + privatekey)
     
-    let privatekey = results[0][0].privatekey
-    const iv = results[0][0].iv
-
   
-
+    //console.log('non local variable = ' + test)
 
     if (result[0].length==0){
       res.json({liste:result[0]})
     }
-    console.log("-----------------------------DEBUT BOUCLE------------------------------------------------")
     console.log(result[0].length)
     for (let i=0;i<result[0].length;i++){
-      console.log("-----------------------------DEDANS------------------------------------------------")
       let messageToDecrypt=""
     if(result[0][i].senderId==id){
       messageToDecrypt = result[0][i].ciphertextReturn
@@ -413,20 +425,7 @@ router.post('/getmessage',(req,res) => {
       messageToDecrypt = result[0][i].ciphertext
     }
 
-    let privatekey = results[0][0].privatekey
-    const iv = results[0][0].iv
-    console.log('Private key affichage test : ' + privatekey)
-    const data_to_pass_in2 = {
-      data_sent: privatekey+'.'+iv+'.'+password,
-      data_returned: undefined
-    };
-    console.log('Data entrante python : ' + privatekey+'.'+iv+'.'+password)
-    console.log("-----------------------------DEBUT PYTHON------------------------------------------------")
-    const instance = require('child_process').spawn
-    const python_proc = instance('python', ['./server/routes/AES_decrypt.py', JSON.stringify(data_to_pass_in2)])
-    python_proc.stdout.on('data', (data) => { 
-      privatekey = data.toString()
-      console.log("KEY :",privatekey)
+  
    
 
       const data_to_pass_in = {
@@ -434,7 +433,7 @@ router.post('/getmessage',(req,res) => {
         data_returned: undefined
       };
 
-
+      //console.log('data passed : ' + privatekey)
       const spawner = require('child_process').spawn
       const python_process = spawner('python', ['./server/routes/Decypher.py', JSON.stringify(data_to_pass_in)])
       python_process.stdout.on('data', (data2) => {
@@ -470,11 +469,7 @@ router.post('/getmessage',(req,res) => {
 
         }
         */
-      })
       
-      python_proc.stderr.on('data',(data) =>{
-        console.error('ERREUR : ', data.toString())
-      })
       
     }
 
@@ -615,8 +610,49 @@ router.post('/changeCookieConv', (req,res) => {
   })
   res.json({message:"Cookie changé"})
 })
-module.exports = router
 
 router.get('/getCookieConv', (req,res) => {
   res.json({id : req.cookies.Conv})
 })
+
+router.get('/decryptRSAprivate' ,(req,res) => {
+  var id;
+  token = req.cookies.log;
+  var password;
+  var privatekey;
+  var iv;
+  jwt.verify(token,process.env.ACCESS_TOKEN_SECRET, (err,user) =>{//Décrypt le token
+    //req.session.userid = user.userid
+    id =  user.userID
+    password = user.password
+  })
+  sequelize.query(`select * from users where userId='${id}'`).then(function(results) {
+    privatekey = results[0][0].privatekey
+    iv = results[0][0].iv
+    const data_to_pass_in2 = {
+      data_sent: privatekey+'.'+iv+'.'+password,
+      data_returned: undefined
+    };
+    console.log('Data entrante python : ' + privatekey+'.'+iv+'.'+password)
+    console.log("-----------------------------DEBUT PYTHON------------------------------------------------")
+    const instance = require('child_process').spawn
+    const python_proc = instance('python', ['./server/routes/AES_decrypt.py', JSON.stringify(data_to_pass_in2)])
+    python_proc.stdout.on('data', (data) => { 
+      privatekey = data.toString()
+      console.log('local key : ' + privatekey)
+      const privateDecypher = generateRSAToken({privatekey : privatekey})
+      console.log('privateDecypher' + privateDecypher)
+      res.cookie('rsakey',privateDecypher,{
+        httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
+        secure: true, //Uniquement sur https
+      })
+      res.json({message:"finit"})
+      
+    })
+    python_proc.stderr.on('data',(data) =>{
+      console.error('ERREUR : ', data.toString())
+    })
+  })
+})
+module.exports = router
+

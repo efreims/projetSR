@@ -206,14 +206,17 @@ var app = new Vue(
       if (password=="123"){
         console.log("mdp OK")
         console.log(this.listmessage)
+        const test = await axios.get('/api/decryptRSAprivate')
         const res = await axios.post('/api/decrypt', {listCrypt : this.listmessage})
         //this.listmessage = res.data.listeDescrypt
         this.verifMdpDecrypt=1
-
+        const idConv = await axios.get('/api/getCookieConv')
+        this.onconv = parseInt(idConv.data.id)
         const listMessage = await axios.post('/api/getmessage',{id : this.onconv})
         this.listmessage = []
         console.log("Sur la conv : ")
         this.listmessage.push(listMessage.data.liste)
+        console.log('Liste des messages : ' + this.listmessage)
       }
         
 
