@@ -7,7 +7,7 @@ const jwt = require('jsonwebtoken')
 const multer = require('multer')
 const {Sequelize} = require('sequelize');
 
-const sequelize = new Sequelize("bddvigenere","admin","vd}:8Eeq`(q=8`S(", //Veuillez mettre le mot de passe de la base de donnée
+const sequelize = new Sequelize("bddvigenere","admin","vd}:8Eeq`(q=8`S(", //Veuillez mettre le mot de passe de la base de donnée admin vd}:8Eeq`(q=8`S(
 {
   dialect: "mysql",
   host: "database-mastercamp.ceb4nhtb3nme.eu-west-2.rds.amazonaws.com",
@@ -259,27 +259,43 @@ router.post('/sign', (req,res) => {
             const public = result_list[0]
             const n = result_list[2]
 
-            sequelize.query(`insert into users(name, email ,password ,admin,city,privatekey,publickey,n) values ('${name}','${email}','${hash}','0','${city}','${private}','${public}','${n}')`).then(function(result) {
-              console.log('Resultats : ' + result[0])
-              const accessToken = generateAcessToken({email : email,password:this.password,userID : result[0]})
-              const refreshToken = generateRefreshToken({email : email,password:this.password})
+            const data_to_pass_in = {
+              data_sent: password+'.'+private,
+              data_returned: undefined
+            };
+
+            const instance = require('child_process').spawn
+            const process_python = instance('python', ['./server/routes/AES_crypt.py', JSON.stringify(data_to_pass_in)])
+            process_python.stdout.on('data',(data2) =>{
+              const result = data2.toString()
+              console.log('Fin Python')
+              const list = result.split('>')
+              rsaKey = list[1]
+              iv = list[0]
+              console.log('renvoyé par python :',result.toString())
+
+              sequelize.query(`insert into users(name, email ,password ,admin,city,iv,privatekey,publickey,n) values ('${name}','${email}','${hash}','0','${city}',"${iv}","${rsaKey}",'${public}','${n}')`).then(function(result) {
+                console.log('Resultats : ' + result[0])
+                const accessToken = generateAcessToken({email : email,password:this.password,userID : result[0]})
+                const refreshToken = generateRefreshToken({email : email,password:this.password})
               
     
-              res.cookie('log',accessToken,{
-                httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
-                secure: true, //Uniquement sur https
-              })
-              res.cookie('refresh',refreshToken,{
-                   httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
-                   secure: true, //Uniquement sur https
-              })
-              res.cookie('Conv',-1,{
-                httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
-                secure: true, //Uniquement sur https
-              })
-             res.json({message:"connected",status:true,access : accessToken,refresh : refreshToken})
+                res.cookie('log',accessToken,{
+                  httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
+                  secure: true, //Uniquement sur https
+                })
+                res.cookie('refresh',refreshToken,{
+                  httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
+                  secure: true, //Uniquement sur https
+                })
+                res.cookie('Conv',-1,{
+                  httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
+                  secure: true, //Uniquement sur https
+                })
+                res.json({message:"connected",status:true,access : accessToken,refresh : refreshToken})
       
               })
+            })
           })
           python_process.stderr.on('data',(data) =>{
             console.error('ERREUR : ', data.toString())
@@ -358,11 +374,13 @@ router.post('/getmessage',(req,res) => {
   var ListMessageDecrypt = []
   const token = req.cookies.log
   var id=0;
+  let password
   //Extrait l'id de l'utilisateur
   jwt.verify(token,process.env.ACCESS_TOKEN_SECRET, (err,user) =>{//Décrypt le token
     //req.session.userid = user.userid
     console.log(user.userID)
     id =  user.userID
+    password = user.password
   })
   const message= req.body.message
   const date = req.body.date
@@ -373,12 +391,19 @@ router.post('/getmessage',(req,res) => {
       //console.log("data :"+dataToPush[0][0])
     if (req.cookies.saveMdpDecrypt && req.cookies.saveMdpDecrypt==1){
   sequelize.query(`select * from users where userId='${id}'`).then(function(results) {
-    //console.log(results[0][0].privatekey)
-    //console.log('Resultats : '+result[0][0])
+    
+    let privatekey = results[0][0].privatekey
+    const iv = results[0][0].iv
+
+  
+
+
     if (result[0].length==0){
       res.json({liste:result[0]})
     }
+    console.log("-----------------------------DEBUT BOUCLE------------------------------------------------")
     for (let i=0;i<result[0].length;i++){
+      console.log("-----------------------------DEDANS------------------------------------------------")
       let messageToDecrypt=""
     if(result[0][i].senderId==id){
       messageToDecrypt = result[0][i].ciphertextReturn
@@ -386,25 +411,41 @@ router.post('/getmessage',(req,res) => {
     else{
       messageToDecrypt = result[0][i].ciphertext
     }
-    const data_to_pass_in = {
-      data_sent: results[0][0].privatekey+'.'+result[0][0].n+'.'+messageToDecrypt,
+
+    let privatekey = results[0][0].privatekey
+    const iv = results[0][0].iv
+
+    const data_to_pass_in2 = {
+      data_sent: privatekey+'.'+iv+'.'+password,
       data_returned: undefined
     };
+    console.log("-----------------------------DEBUT PYTHON------------------------------------------------")
+    const instance = require('child_process').spawn
+    const python_proc = instance('python', ['./server/routes/AES_decrypt.py', JSON.stringify(data_to_pass_in2)])
+    python_proc.stdout.on('data', (data) => { 
+      privatekey = data2.toString()
+      console.log("KEY :",privatekey)
+   
+
+      const data_to_pass_in = {
+        data_sent: privatekey+'.'+result[0][0].n+'.'+messageToDecrypt,
+        data_returned: undefined
+      };
 
 
-    const spawner = require('child_process').spawn
-    const python_process = spawner('python', ['./server/routes/Decypher.py', JSON.stringify(data_to_pass_in)])
-    python_process.stdout.on('data', (data2) => {
-        var send;
-        if (result[0][i].senderId==id)
-          send=true
-        else 
-          send=false
-        ListMessageDecrypt.push({idMessage:result[0][i].messageId,message:data2.toString(),date:result[0][i].messageDate,send:send})
-       if(ListMessageDecrypt.length==result[0].length){
-          ListMessageDecrypt.sort((a, b) => a.idMessage - b.idMessage);
-          res.json({liste:ListMessageDecrypt})
-       }
+      const spawner = require('child_process').spawn
+      const python_process = spawner('python', ['./server/routes/Decypher.py', JSON.stringify(data_to_pass_in)])
+      python_process.stdout.on('data', (data2) => {
+          var send;
+          if (result[0][i].senderId==id)
+            send=true
+          else 
+            send=false
+          ListMessageDecrypt.push({idMessage:result[0][i].messageId,message:data2.toString(),date:result[0][i].messageDate,send:send})
+        if(ListMessageDecrypt.length==result[0].length){
+            ListMessageDecrypt.sort((a, b) => a.idMessage - b.idMessage);
+            res.json({liste:ListMessageDecrypt})
+        }
       })
           //console.log('Liste final' +ListMessageDecrypt)
           //ListMessageDecrypt.sort((a, b) => b.idMessage - a.idMessage);
@@ -427,7 +468,10 @@ router.post('/getmessage',(req,res) => {
 
         }
         */
-       
+      })
+      python_proc.stderr.on('data',(data) =>{
+        console.error('ERREUR : ', data.toString())
+      })
     }
 
 

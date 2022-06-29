@@ -243,6 +243,7 @@ var app = new Vue(
     },
     async afficherConv(amiId){
       const cookie = await axios.post('/api/changeCookieConv',{id : amiId})
+      this.onconv = cookie.data.idConv
       const veriflog = await axios.get('/api/verifCookieLog')
       if (veriflog.data.verif==true)
       {
