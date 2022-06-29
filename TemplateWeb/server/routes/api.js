@@ -134,9 +134,9 @@ router.post('/login', (req,res) => {
     {
       bcrypt.compare(password,result[0][0].password, function(err,result2) {
         if (result2){
-          const accessToken = generateAcessToken({email : email,password:this.password,userID :result[0][0].userId})
+          const accessToken = generateAcessToken({email : email,password:password,userID :result[0][0].userId})
           console.log('IDDDD: ' + result[0][0].userId) 
-          const refreshToken = generateRefreshToken({email : email,password:this.password,userID :result[0][0].userId})
+          const refreshToken = generateRefreshToken({email : email,password:password,userID :result[0][0].userId})
     res.cookie('log',accessToken,{
       httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
       secure: true, //Uniquement sur https
@@ -374,13 +374,13 @@ router.post('/getmessage',(req,res) => {
   var ListMessageDecrypt = []
   const token = req.cookies.log
   var id=0;
-  let password
+  var password
   //Extrait l'id de l'utilisateur
   jwt.verify(token,process.env.ACCESS_TOKEN_SECRET, (err,user) =>{//Décrypt le token
     //req.session.userid = user.userid
-    console.log(user.userID)
     id =  user.userID
     password = user.password
+    console.log('PASSWORD : ' +password)
   })
   const message= req.body.message
   const date = req.body.date
@@ -402,6 +402,7 @@ router.post('/getmessage',(req,res) => {
       res.json({liste:result[0]})
     }
     console.log("-----------------------------DEBUT BOUCLE------------------------------------------------")
+    console.log(result[0].length)
     for (let i=0;i<result[0].length;i++){
       console.log("-----------------------------DEDANS------------------------------------------------")
       let messageToDecrypt=""
@@ -414,16 +415,17 @@ router.post('/getmessage',(req,res) => {
 
     let privatekey = results[0][0].privatekey
     const iv = results[0][0].iv
-
+    console.log('Private key affichage test : ' + privatekey)
     const data_to_pass_in2 = {
       data_sent: privatekey+'.'+iv+'.'+password,
       data_returned: undefined
     };
+    console.log('Data entrante python : ' + privatekey+'.'+iv+'.'+password)
     console.log("-----------------------------DEBUT PYTHON------------------------------------------------")
     const instance = require('child_process').spawn
     const python_proc = instance('python', ['./server/routes/AES_decrypt.py', JSON.stringify(data_to_pass_in2)])
     python_proc.stdout.on('data', (data) => { 
-      privatekey = data2.toString()
+      privatekey = data.toString()
       console.log("KEY :",privatekey)
    
 
@@ -469,9 +471,11 @@ router.post('/getmessage',(req,res) => {
         }
         */
       })
+      
       python_proc.stderr.on('data',(data) =>{
         console.error('ERREUR : ', data.toString())
       })
+      
     }
 
 
