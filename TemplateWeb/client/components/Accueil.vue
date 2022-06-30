@@ -50,9 +50,6 @@
             }
     
         },
-        mounted(){
-            this.$emit("load-data")
-        }
     }
 
 </script>

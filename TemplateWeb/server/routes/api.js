@@ -38,25 +38,7 @@ function generateRefreshToken(user){
   return jwt.sign(user,process.env.REFRESH_TOKEN_SECRET,{expiresIn:'1y'})
 }
 //Pour vérifier que la personne est connectée
-function autoToken(req,res, next){
-  const token = req.cookies.log
-  //const token = authHeader && authHeader.split(' ')[1]
-  console.log('token' + token)
-  console.log(token)
-  if(!token){
-    return res.sendStatus(401)
-  }
-  jwt.verify(token,process.env.ACCESS_TOKEN_SECRET, (err,user) =>{//Décrypt le token
-    if(err){
-      console.log('PAS BON')
-      return res.sendStatus(401)
-    }
-    //req.session.userid = user.userid
-    console.log('BON')
-    req.user = user
-    next()
-  })
-}
+
 
 const { status } = require('express/lib/response');
 const res = require('express/lib/response');
@@ -90,14 +72,35 @@ router.use((req, res, next) => {
   next();
 })
 
-router.get('/verif', autoToken, (req,res) => {
+router.get('/verifAccess', (req,res) => {
   //console.log(req.cookies)
   //console.log('res : ' + res)
   //console.log(req.status)
-  if(req.user)
+  const token = req.cookies.log
+  //const token = authHeader && authHeader.split(' ')[1]
+  if (token){
+  jwt.verify(token,process.env.ACCESS_TOKEN_SECRET, (err,user) =>{//Décrypt le token
+   if(err){
+    console.log('erreur')
+    res.send({status : false})
+    console.log('dans2')
+   }
+    else{
+      console.log('BON')
     res.send({status:true, user : req.user,refresh : req.cookies.refresh,acces: req.cookies.log})
-  else 
-    res.send({status : false})})
+    }
+
+  })
+}
+else{
+  console.log('non')
+  res.send({status : false})
+    console.log('dans2')
+}
+
+  
+  
+  })
 
 router.get('/deco',(req,res) => {
   res.cookie('log','',{
@@ -184,7 +187,7 @@ router.post('/refreshToken', (req, res) => {
     if (err) {
       //console.log('testttttttttt')
       //req.cookies.log
-      res.sendStatus(404)
+      res.json({status:false})
     }
 
     // TODO: Check en base que l'user est toujours existant/autorisé à utiliser la plateforme
@@ -195,8 +198,8 @@ router.post('/refreshToken', (req, res) => {
       httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
       secure: true, //Uniquement sur https
     })
-    res.send({
-      accessToken: refreshedToken,
+    res.json({
+      status: true,
     });
   });
 });
@@ -392,7 +395,6 @@ router.post('/getmessage',(req,res) => {
     //req.session.userid = user.userid
     id =  user.userID
     password = user.password
-    console.log('PASSWORD : ' +password)
   })
   const message= req.body.message
   const date = req.body.date

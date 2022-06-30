@@ -7,64 +7,7 @@ const Listemembres = window.httpVueLoader('./components/Listemembres.vue')
 const Notifami = window.httpVueLoader('./components/Notifami.vue')
 const Sectionami = window.httpVueLoader('./components/Sectionami.vue')
 
-var refreshToken;
 
-axios.interceptors.response.use((response) => {
-  return response
-}, async function (error) {
-  const originalRequest = error.config;
-  if (error.config.url != "/refreshToken" && error.response.status === 401 && !originalRequest._retry) {
-    originalRequest._retry = true;
-    const res = await axios.get('/api/refreshToken')
-      refreshToken = res.data.refresh
-      console.log('refresh' + refreshToken)
-    if (refreshToken && refreshToken != "") {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${refreshToken}`;
-      console.log('refreshToken');
-      await axios.post('/api/refreshToken').then((response) => {
-        // TODO: mettre à jour l'accessToken dans le localStorage
-        console.log('token refreshed')
-        originalRequest.headers['Authorization'] = `Bearer ${response.data.accessToken}`;
-        axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.accessToken}`;
-        console.log('1')
-        location.reload()
-        /*
-        axios.get('/api/verifCookieLog').then((response2) => {
-        if (response2.data.verif==true)
-        {
-          console.log('dans dans')
-          axios.get('/api/getmessage').then((response3) => {
-            this.listmessage = []
-            console.log(this.listmessage)
-            this.listmessage.push(response3.data.liste)
-          })
-        }
-        })
-        */
-      }).catch((err) => {
-        console.log('erreur')
-        /*
-        const veriflog = axios.get('/api/verifCookieLog')
-      if (veriflog.data.verif==true)
-      {
-        const listMessage = axios.get('/api/getmessage')
-        this.listmessage.push(listMessage.data.liste)
-      }
-      */
-        console.log(err.response.status);
-        refreshToken = null;
-        axios.post('/api/retourLogin')
-        window.location.href=('/')
-      });
-      return axios(originalRequest);
-    }
-    else{
-      axios.post('/api/retourLogin')
-        window.location.href=('/')
-    }
-  }
-  return Promise.reject(error);
-});
 
 
 const routes = [
@@ -95,12 +38,9 @@ var app = new Vue(
   },
   async mounted () 
   {
-      const res = await axios.get('/api/retourLogin')
-      if (res.data.status==false){
-        this.verif()
-      }
-      const veriflog = await axios.get('/api/verifCookieLog')
-      if (veriflog.data.verif==true)
+      const temp = await this.verif()
+      console.log('temp' + temp.toString())
+      if (temp==true)
         {
       const valeurMdpDecrypt = await axios.get('/api/verifMdpDecrypt')
       //console.log(valeurMdpDecrypt.data.cookiemdp)
@@ -155,16 +95,23 @@ var app = new Vue(
       
     },
     async verif(){
-  
-    const res = await axios.get('/api/verif')
+  console.log('yes')
+    const res = await axios.get('/api/verifAccess')
+    console.log('yes')
     if (res.data.status==false){
-      this.$router.push('/')
+      console.log('BONNNNN')
+      const resRefresh = await axios.post('/api/refreshToken')
+      if (resRefresh.data.status==false){
+          this.$router.push('/')
+          return false
+      }
+
+      else 
+        return true
     }
     else{
-      console.log('test variavle')
-      axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.access}`;
-      refreshToken = res.data.refresh
-      this.resultlogin = 1
+      console.log('PAS BONNNNN')
+      return true
     }
     },
     async deconnexion(){
@@ -221,6 +168,7 @@ var app = new Vue(
         
 
     },
+    /*
     async loadData(){
         const idConv = await axios.get('/api/getCookieConv')
         console.log('idConv = '+ idConv.data.id)
@@ -234,6 +182,7 @@ var app = new Vue(
           this.listmessage.push(listMessage.data.liste)
         }
     },
+    */
     async returnAccueil (){
       router.push('/accueil')
     },
