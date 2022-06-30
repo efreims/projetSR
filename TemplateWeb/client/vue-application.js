@@ -75,21 +75,18 @@ var app = new Vue(
       console.log(res.data.status)
       
       if (res.data.status==true){
-        axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.access}`;
-        refreshToken = res.data.refresh
-        this.resultlogin = 1;
-        const listUsers = await axios.get('/api/getusers');
+        const listUsers = await axios.post('/api/getusers',{id :res.data.id });
         this.listemembres = []
         this.listemembres.push(listUsers.data.liste);
         this.listemembres = this.listemembres[0]
-        const notif = await axios.get('/api/notifami')
+        const notif = await axios.post('/api/notifami',{id :res.data.id })
         this.listnotifami.push(notif.data.listnotif)
         this.listnotifami = this.listnotifami[0]
-        const ami = await axios.get('/api/ami')
+        const ami = await axios.post('/api/ami',{id :res.data.id })
         this.listami=[]
         this.listami.push(ami.data.list)
         this.listami =  this.listami[0]
-        
+        this.resultlogin = 1
         this.$router.push('/accueil');
       }
       

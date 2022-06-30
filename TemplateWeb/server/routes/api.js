@@ -160,7 +160,7 @@ router.post('/login', (req,res) => {
       httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
       secure: true, //Uniquement sur https
     })
-    res.json({message:"connected",status:true,access : accessToken,refresh : refreshToken})
+    res.json({message:"connected",status:true,access : accessToken,refresh : refreshToken,id:result[0][0].userId})
   
         }
         else{
@@ -303,7 +303,7 @@ router.post('/sign', (req,res) => {
                   httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
                   secure: true, //Uniquement sur https
                 })
-                res.json({message:"connected",status:true,access : accessToken,refresh : refreshToken})
+                res.json({message:"connected",status:true,access : accessToken,refresh : refreshToken, id :result[0].id })
       
               })
             })
@@ -546,6 +546,16 @@ router.get('/verifCookieLog',(req,res) => {
   
 })
 
+router.post('/getusers', (req,res) => {
+  console.log(req.body.id)
+  var id=req.body.id
+  token = req.cookies.log
+  console.log('userid : '+id)
+  sequelize.query(`select * from users where userID!='${id}'`).then(function(result) {
+    res.json({liste:result[0]})
+  })
+})
+
 router.get('/getusers', (req,res) => {
   var id=0
   token = req.cookies.log
@@ -574,12 +584,9 @@ router.post('/ajoutami', (req,res) => {
   })
 })
 
-router.get('/notifami', (req,res) => {
-  var userID = 0
-  jwt.verify(token,process.env.ACCESS_TOKEN_SECRET, (err,user) =>{//Décrypt le token
-    //req.session.userid = user.userid
-    userID =  user.userID
-  })
+router.post('/notifami', (req,res) => {
+  var userID = req.body.id
+ 
   sequelize.query(`select users.name, ami.relationId from ami join users on ami.receiverId=users.userId where receiverId='${userID}' and etat='false'`).then(function(result) {
     console.log('notif : ' + result[0])
     res.json({listnotif : result[0]})
@@ -593,12 +600,8 @@ router.post('/acceptAmi', (req,res) => {
   })
 })
 
-router.get('/ami', (req,res) => {
-  var userID = 0
-  jwt.verify(token,process.env.ACCESS_TOKEN_SECRET, (err,user) =>{//Décrypt le token
-    //req.session.userid = user.userid
-    userID =  user.userID
-  })
+router.post('/ami', (req,res) => {
+  var userID = req.body.id
   sequelize.query(`select users.name as name, ami.receiverId as amiId from ami join users on users.userId=ami.receiverId where senderId=${userID} and etat=true UNION select users.name as name, ami.senderId as amiId from ami join users on users.userId=ami.senderId where receiverId=${userID} and etat=true`).then(function(result) {
     res.json({list : result[0]})
   })
@@ -656,5 +659,7 @@ router.get('/decryptRSAprivate' ,(req,res) => {
     })
   })
 })
+
+router.post('/')
 module.exports = router
 
