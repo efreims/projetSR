@@ -164,7 +164,8 @@ var app = new Vue(
       this.listmessage[0].push(res.data)
     },
     async submitpassword(password){
-      if (password=="123"){
+      const verifmdp = await axios.post('/api/passwordverif',{password : password})
+      if (verifmdp.data.status==true){
         console.log("mdp OK")
         console.log(this.listmessage)
         const test = await axios.get('/api/decryptRSAprivate')

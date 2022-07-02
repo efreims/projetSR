@@ -720,6 +720,24 @@ router.get('/decryptRSAprivate' ,(req,res) => {
   })
 })
 
-router.post('/')
+router.post('/passwordverif', (req,res) => {
+  token = req.cookies.log;
+  var id;
+  jwt.verify(token,process.env.ACCESS_TOKEN_SECRET, (err,user) =>{//Décrypt le token
+    //req.session.userid = user.userid
+    id =  user.userID
+  })
+  const password = req.body.password
+  sequelize.query(`select password from users where userId='${id}'`).then(function(results) {
+    bcrypt.compare(password,results[0][0].password, function(err,result2) {
+      if (result2){
+        res.json({status:true})
+      }
+      else{
+        res.json({status:false})
+      }
+  })
+})
+})
 module.exports = router
 
