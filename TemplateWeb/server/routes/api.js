@@ -171,10 +171,12 @@ router.post('/login2fa', (req,res) => {
     const data_to_pass_in = {
       data_sent: privatekey+'.'+code
     };
+    console.log(privatekey)
     const spawner = require('child_process').spawn
     const python_process = spawner('python', ['./server/routes/auth.py', JSON.stringify(data_to_pass_in)])
     python_process.stdout.on('data', (data) => {
     let boolean = data.toString()
+    console.log(boolean)
     var index = boolean.indexOf("T");  
       
       if (index!=-1){
@@ -356,6 +358,11 @@ router.post('/sign', (req,res) => {
 
 
 router.post('/sendMessage',(req,res) => {
+  var id;
+  jwt.verify(token,process.env.ACCESS_TOKEN_SECRET, (err,user) =>{//Décrypt le token
+    //req.session.userid = user.userid
+    id =  user.userID
+  })
   var messageDecrypt= req.body.message
   const date = req.body.date
   const spawner = require('child_process').spawn
@@ -364,12 +371,13 @@ router.post('/sendMessage',(req,res) => {
     if(err){
       return res.sendStatus(401)
     }
-    const userSender = user.userID
-    let userReceive = 0
-    if(userSender == 1)
-      userReceive = 2
-    else
-      userReceive = 1
+    const userSender = id
+    let userReceive = req.cookies.Conv
+    // if(userSender == 1)
+    //   userReceive = 2
+    // else
+    //   userReceive = 1
+
     sequelize.query(`select * from users where userId = '${userReceive}'`).then(function(results) {
       sequelize.query(`select * from users where userId = '${userSender}'`).then(function(resultForSender) {
       const data_to_pass_in = {
@@ -385,7 +393,7 @@ router.post('/sendMessage',(req,res) => {
       
       const python_process = spawner('python', ['./server/routes/Cypher.py', JSON.stringify(data_to_pass_in)])
       python_process.stdout.on('data', (data) => {
-        const python_process2 = spawner('python', ['C:/Users/lefev/projetSR-devtemp/TemplateWeb/server/routes/Cypher.py', JSON.stringify(data_to_pass_in2)])
+        const python_process2 = spawner('python', ['./server/routes/Cypher.py', JSON.stringify(data_to_pass_in2)])
         python_process2.stdout.on('data', (data2) => {
         message = data.toString()
         messageForSender = data2.toString()
@@ -469,6 +477,7 @@ router.post('/getmessage',(req,res) => {
       };
 
       //console.log('data passed : ' + privatekey)
+      console.log('avant script python')
       const spawner = require('child_process').spawn
       const python_process = spawner('python', ['./server/routes/Decypher.py', JSON.stringify(data_to_pass_in)])
       python_process.stdout.on('data', (data2) => {
@@ -477,12 +486,16 @@ router.post('/getmessage',(req,res) => {
             send=true
           else 
             send=false
+          console.log('message en clair : ' +data2.toString() )
           ListMessageDecrypt.push({idMessage:result[0][i].messageId,message:data2.toString(),date:result[0][i].messageDate,send:send})
         if(ListMessageDecrypt.length==result[0].length){
             ListMessageDecrypt.sort((a, b) => a.idMessage - b.idMessage);
             res.json({liste:ListMessageDecrypt})
         }
       })
+      python_process.stderr.on('data', (data) => {
+        console.log(`error:${data}`);
+      });
           //console.log('Liste final' +ListMessageDecrypt)
           //ListMessageDecrypt.sort((a, b) => b.idMessage - a.idMessage);
           //console.log('Liste final' +ListMessageDecrypt)
