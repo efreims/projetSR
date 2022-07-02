@@ -22,11 +22,20 @@
         <router-view 
         :listmessage="listmessage"
         :resultlogin="resultlogin"
+        :listemembres="listemembres"
+        :listnotifami="listnotifami"
+        :listami="listami"
+        :onconv="onconv"
+        @return-accueil="returnAccueil"
         @submit-message = "submitmessage"
         @submit-password="submitpassword"
         @login-user="login"
         @verif-con="verif"
         @sign-user="sign"
+        @ajout-ami="ajoutAmi"
+        @accept-ami="acceptAmi"
+        @afficher-conv="afficherConv"
+        @login-fa="loginfa"
         >
         </router-view>
       </main>

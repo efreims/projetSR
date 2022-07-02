@@ -1,7 +1,10 @@
 <template>
     <div>
-        Page réservé aux membres connectés
-        <Conversation @submit-password = "submitpassword" @submit-message="submitmessage" :listmessage="listmessage"> </Conversation>
+        <p>Page réservé aux membres connectés</p>
+        <Conversation @submit-password = "submitpassword" @submit-message="submitmessage" :listmessage="listmessage" :onconv="onconv" class="conversation"> </Conversation>
+        <Listemembres @ajout-ami="ajoutAmi" :listemembres="listemembres"></Listemembres>
+        <Notifami @accept-ami="acceptAmi" :listnotifami="listnotifami"></Notifami>
+        <Sectionami @afficher-conv="afficherConv" :listami="listami"></Sectionami>
     </div>
 </template>
 
@@ -10,14 +13,21 @@
         name : "Accueil",
         props: {
             resultlogin:Number,
-            listmessage:Array
+            listmessage:Array,
+            listemembres:Array,
+            listnotifami : Array,
+            listami : Array,
+            onconv : Number
         },
         components:{
-            Conversation
+            Conversation,
+            Listemembres,
+            Notifami,
+            Sectionami,
         },
         data(){
-            return{
-                
+            return {
+
             }
         },
         methods : {
@@ -27,15 +37,26 @@
             },
              submitpassword(password){
                 this.$emit('submit-password',password)
+            },
+            ajoutAmi(id){
+                this.$emit('ajout-ami',{id : id})
+            },
+            acceptAmi(relationId){
+                this.$emit('accept-ami',relationId)
+            },
+            afficherConv(id){
+                this.onConv = id
+                this.$emit('afficher-conv',{id : id})
             }
     
         },
-        mounted(){
-            //this.$emit("verif-con")
-        }
     }
 
 </script>
 
-<style>
+<style scoped>
+.conversation{
+    width: 100vw;
+}
+</style>
 

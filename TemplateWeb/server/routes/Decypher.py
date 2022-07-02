@@ -4,11 +4,10 @@ import ast
 
 
 def decrypt(key,n,ciphertext):
-    plain = [chr(pow(char, key, n)) for char in ciphertext]
+    plain = [chr(pow(int(char), key, n)) for char in ciphertext]
     return ''.join(plain)
 
 input = ast.literal_eval(sys.argv[1]) # dans input on a une chaine de caractères contenant n + clé privée du receveur + texte à transmettre
-
 received = input['data_sent'].split(".")
 
 text = received[2]
