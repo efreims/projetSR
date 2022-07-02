@@ -302,6 +302,7 @@ router.post('/sign', (req,res) => {
             const retrieved = data.toString()
             const result_list = retrieved.split(' ')
             const private = result_list[1]
+            console.log('CLE PRIVEE TEST : ' + private)
             const public = result_list[0]
             const n = result_list[2]
 
@@ -716,7 +717,7 @@ router.get('/decryptRSAprivate' ,(req,res) => {
     const instance = require('child_process').spawn
     const python_proc = instance('python', ['./server/routes/AES_decrypt.py', JSON.stringify(data_to_pass_in2)])
     python_proc.stdout.on('data', (data) => { 
-      privatekey = data.toString()
+      privatekey = data
       console.log('local key : ' + privatekey)
       const privateDecypher = generateRSAToken({privatekey : privatekey})
       console.log('privateDecypher' + privateDecypher)
