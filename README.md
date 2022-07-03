@@ -1,8 +1,8 @@
-# Projet Sécurité et réseau
+# Vigénère
 
-Ceci est le github pour la Solution Factory du Mastercamp.
+This is the GitHub for the Mastercamp Solution Factory.
 </br>
-Nous sommes le groupe n°333 composé de :  </br>
+We are group #333 composed of:  </br>
 DAMOIS Hugo </br>
 DUVAL Arnaud </br>
 LEFVRE Noé </br>
@@ -11,13 +11,13 @@ SOK Michaël </br>
 WERNERT Sébastien </br>
 </br>
 
-Ce projet a pour but de créer une messagerie sécurisée basé sur le chiffrage de bout en bout :
+This project aims to create a secure messaging system based on end-to-end encryption:
 
 # Fonctionnement
 
-Ce projet est un site web conçu avec : Node.js, Express.js, Vue.js, Python
+This project is a website designed with : Node.js, Express.js, Vue.js, Python
 </br>
-Tout cela en utilisant Visual Studio Code.
+All this using Visual Studio Code.
 </br>
 </br>
 <img src="doc/njs.png" width="200" height="100"/> 
@@ -27,32 +27,32 @@ Tout cela en utilisant Visual Studio Code.
 </br>
 </br>
 
-Le programme a été lancé **UNIQUEMENT SOUS WINDOWS**, les configurations sont les suivantes : </br>
-| Configuration requise  | Minimal | Recommandé |  
+The program has been launched **ONLY UNDER WINDOWS**, the configurations are as follows:
+| System requirements  | Minimal | Recommended |  
 |------------------------|---------|------------|
-| Système d'exploitation nécessaire | Windows 7 x64 | Windows 10 x64 |
-| Processeur | Intel Core Duo ou mieux | Intel Core I5 ou mieux |
-| Mémoire vive | 512 Mo de mémoire | 8 Go de mémoire |
-| Espace requis | 10 Mo requis |10 Mo requis |
+| Required operating system | Windows 7 x64 | Windows 10 x64 |
+| Processor | Intel Core Duo or better | Intel Core I5 or better |
+| RAM | 512 Mb | 8 Gb |
+| Space needed | 10 Mb |10 Mb |
 
-# Les différentes Branches
+# The different Branches
 
 ## AlgoPy
 
-Ce dossier va comporter tous les scripts Python qui vont être reliés au chiffrement et au déchiffrement. Ce sont ces fichiers qui s'occupent de toute la partie cryptographique du projet.
+This folder will contain all the Python scripts that are related to encryption and decryption. These are the files that take care of the whole cryptographic part of the project.
 
 ## BDD
 
-Ce dossier va comporter tous les fichiers liés à la Base De Données, notre base de données est en MySQL.
+This folder will contain all the files related to the Database, our database is in MySQL.
 
 ## Template Web
 
-Ce dossier va comporter le squelette du site Web, ce dossier est le coeur même du site Web
+This folder will contain the skeleton of the website, this folder is the heart of the website
 
 ## Auth 2F
 
-Ce dossier va comporter tous les fichiers liés à l'authentification à double facteurs nécessaire à l'envoi et à la lecture des messages.
+This folder will contain all the files related to the two-factor authentication needed to send and read messages.
 
-# Autres
-En cas de problèmes lors du lancement du programme ou de questions, veuillez envoyer un mail à : **vigenere@gmail.com**
+# Misc
+If you have any problems launching the program or have any questions, please send an email to : **vigenere@gmail.com**
 </br></br>
