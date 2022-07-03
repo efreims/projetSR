@@ -13,7 +13,7 @@ WERNERT Sébastien </br>
 
 This project aims to create a secure messaging system based on end-to-end encryption:
 
-# Fonctionnement
+# Functioning
 
 This project is a website designed with : Node.js, Express.js, Vue.js, Python
 </br>
