@@ -32,7 +32,10 @@ var app = new Vue(
     listemembres:[],
     listnotifami:[],
     listami:[],
-    onconv:-1
+    onconv:-1,
+    errormessagelogin:0,
+    errormessagelogin2fa:0,
+    listerecherche:[]
   },
   components: 
   {
@@ -43,6 +46,7 @@ var app = new Vue(
       console.log('temp' + temp.toString())
       if (temp==true)
         {
+      this.resultlogin = 1;
       const valeurMdpDecrypt = await axios.get('/api/verifMdpDecrypt')
       //console.log(valeurMdpDecrypt.data.cookiemdp)
       this.verifMdpDecrypt = valeurMdpDecrypt.data.cookiemdp
@@ -66,14 +70,22 @@ var app = new Vue(
           this.listmessage.push(listMessage.data.liste)
         }
         }
+        else{
+          this.$router.push('/')
+        }
      //console.log(ami)
   },
   methods: 
   {
    
     async login(Login){
-
-      this.$router.push('/loginfa?password='+Login.password+'&email='+Login.email);
+      console.log(Login)
+      const veriflog = await axios.post('/api/login', {email:Login.email,password:Login.password})
+      console.log(veriflog.data.status)
+      if (veriflog.data.status==false)
+        this.errormessagelogin = 1
+      else
+        this.$router.push('/loginfa?password='+Login.password+'&email='+Login.email);
       
     },
     async loginfa(code){
@@ -104,6 +116,13 @@ var app = new Vue(
         this.resultlogin = 1
         this.$router.push('/accueil');
       }
+      else{
+        this.errormessagelogin2fa = 1
+      }
+    }
+    else{
+      this.errormessagelogin = 1
+      this.$router.push('/')
     }
   
 
@@ -116,7 +135,6 @@ var app = new Vue(
       console.log('BONNNNN')
       const resRefresh = await axios.post('/api/refreshToken')
       if (resRefresh.data.status==false){
-          this.$router.push('/')
           return false
       }
 
@@ -207,6 +225,12 @@ var app = new Vue(
     async acceptAmi(relationId){
       console.log(relationId)
       const res = await axios.post('/api/acceptAmi',{relationId : relationId})
+      console.log(res.data.list)
+      this.listami.push(res.data.list)
+      let index = this.listnotifami.findIndex( relationId => relationId = relationId);
+      console.log(index)
+      console.log(this.listami)
+      this.listnotifami.splice(index,1)
     },
     async afficherConv(amiId){
       const cookie = await axios.post('/api/changeCookieConv',{id : amiId})
@@ -221,7 +245,21 @@ var app = new Vue(
         this.listmessage.push(listMessage.data.liste)
         console.log(this.listmessage)
       }
+    },
+    async recherchemembre(nom){
+      console.log(nom)
+      let regex = new RegExp(nom+".*")
+      if(nom!=""){
+      this.listerecherche = this.listemembres.filter(user => 
+        user.name.match(regex) ? true : false
+       )
+       console.log(this.listerecherche)
+       
     }
+    else {
+      this.listerecherche.pop()
+    }
+  }
     
   }
 })

@@ -29,9 +29,9 @@ def generate_rsa_keys(bits):
         e = number.getRandomRange(1, phi)
         g = GCD(e, phi)
     d = number.inverse(e, phi)
-    return ((e, n), (d, n))
+    return ((e, n), (d, n),(phi,n))
 
-t = generate_rsa_keys(2048)
+t = generate_rsa_keys(512)
 
 
 #print('\nRSA keys:')
@@ -40,10 +40,11 @@ t = generate_rsa_keys(2048)
 e = t[0][0]
 n = t[0][1]
 d = t[1][0]
+phi = t[2][0]
 #print("e=" + str(e))
 #print("n=" + str(n))
 #print("d=" + str(d))
-output = str(e)+" "+str(d)+" "+str(n)
+output = str(e)+" "+str(d)+" "+str(n)+" "+str(phi)
 print(output)
 #print('Public key: (e, n) =', t[0])
 #print('Private key: (d, n) =', t[1])

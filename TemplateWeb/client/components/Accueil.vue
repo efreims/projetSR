@@ -2,7 +2,7 @@
     <div>
         <p>Page réservé aux membres connectés</p>
         <Conversation @submit-password = "submitpassword" @submit-message="submitmessage" :listmessage="listmessage" :onconv="onconv" class="conversation"> </Conversation>
-        <Listemembres @ajout-ami="ajoutAmi" :listemembres="listemembres"></Listemembres>
+        <Listemembres @recherche-membre="recherchemembre" @ajout-ami="ajoutAmi" :listemembres="listemembres" :listerecherche="listerecherche"></Listemembres>
         <Notifami @accept-ami="acceptAmi" :listnotifami="listnotifami"></Notifami>
         <Sectionami @afficher-conv="afficherConv" :listami="listami"></Sectionami>
     </div>
@@ -17,7 +17,8 @@
             listemembres:Array,
             listnotifami : Array,
             listami : Array,
-            onconv : Number
+            onconv : Number,
+            listerecherche:Array
         },
         components:{
             Conversation,
@@ -47,8 +48,10 @@
             afficherConv(id){
                 this.onConv = id
                 this.$emit('afficher-conv',{id : id})
+            },
+            recherchemembre(nom){
+                this.$emit('recherche-membre',nom)
             }
-    
         },
     }
 
