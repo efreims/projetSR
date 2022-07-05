@@ -80,22 +80,19 @@ var app = new Vue(
    
     async login(Login){
       console.log(Login)
-      const veriflog = await axios.post('/api/login', {email:Login.email,password:Login.password})
+      const veriflog = await axios.post('/api/login', {email:Login.email,password:Login.password,first:true})
       console.log(veriflog.data.status)
       if (veriflog.data.status==false)
         this.errormessagelogin = 1
       else
-        this.$router.push('/loginfa?password='+Login.password+'&email='+Login.email);
-      
+        this.$router.push('/loginfa');
     },
     async loginfa(code){
-      //const res = await axios.post('/api/login', Login)
-      let str = window.location.href
-      str = str.replace('#','')
-      var url = new URL(str);
-      const password = url.searchParams.get("password")
-      const email = url.searchParams.get("email")
-      
+      const getinfo = await axios.get('/api/gettemplog')
+      const password = getinfo.data.password
+      const email = getinfo.data.email
+      console.log('password :'+password)
+      console.log('email :'+email)
       const veriflog = await axios.post('/api/login', {email:email,password:password})
       const userID = veriflog.data.userID
       if (veriflog.data.status==true){
@@ -163,7 +160,7 @@ var app = new Vue(
         axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.access}`;
         refreshToken = res.data.refresh
         this.resultlogin = 1;
-        const listUsers = await axios.get('/api/getusers');
+        const listUsers = await axios.post('/api/getusers',res.data.id);
         this.listemembres = []
         this.listemembres.push(listUsers.data.liste);
         this.listemembres = this.listemembres[0]

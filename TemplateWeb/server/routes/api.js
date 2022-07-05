@@ -38,6 +38,10 @@ function generateRSAToken(user){
 function generateRefreshToken(user){
   return jwt.sign(user,process.env.REFRESH_TOKEN_SECRET,{expiresIn:'1y'})
 }
+
+function generateTempToken(user){
+  return jwt.sign(user,process.env.REFRESH_TOKEN_SECRET,{expiresIn:'1y'})
+}
 //Pour vérifier que la personne est connectée
 
 
@@ -138,6 +142,7 @@ router.get('/deco',(req,res) => {
 router.post('/login', (req,res) => {
   const email = req.body.email
   const password = req.body.password
+  let status = req.body.status
   sequelize.query(`SELECT * FROM users WHERE email = '${email}'`)
   .then(result => {
     if (result[0].length === 0) 
@@ -151,6 +156,12 @@ router.post('/login', (req,res) => {
     {
       bcrypt.compare(password,result[0][0].password, function(err,result2) {
         if (result2){
+          console.log('IDDDDDDDD : ' + result[0][0].userId)
+          const templog = generateTempToken({email:email, password:password,id:result[0][0].userId})
+          res.cookie('templog',templog,{
+            httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
+            secure: true, //Uniquement sur https
+          })
           res.json({status:true,password:password,userID : result[0][0].userId,email:email})
   
         }
@@ -172,10 +183,22 @@ router.post('/login2fa', (req,res) => {
   const password = req.body.password
   const email = req.body.email
   const userID = req.body.userID
-  sequelize.query(`select privatekey2fa as pv from users where userId = '${userID}'`).then(function(result) {
-    const privatekey = result[0][0].pv
+  sequelize.query(`select privatekey2fa as pv, ivauth as iv from users where userId = '${userID}'`).then(function(result) {
+    let privatekey = result[0][0].pv
+    const iv = result[0][0].iv
+    const data_to_decrypt = {
+      data_sent: privatekey+'.'+iv+'.'+password,
+      data_returned: undefined
+    };
+    const instance = require('child_process').spawn
+    const python_proc = instance('python', ['./server/routes/AES_decrypt.py', JSON.stringify(data_to_decrypt)])
+    python_proc.stdout.on('data', (data) => { 
+    let privatekey2= data.toString()
+    privatekey2 = privatekey2.replace('\r','')
+    privatekey2 = privatekey2.replace('\n','')
+    console.log('CLE DECRYPTE : ' + privatekey2)
     const data_to_pass_in = {
-      data_sent: privatekey+'.'+code
+      data_sent: privatekey2+'.'+code
     };
     const spawner = require('child_process').spawn
     const python_process = spawner('python', ['./server/routes/auth.py', JSON.stringify(data_to_pass_in)])
@@ -206,6 +229,14 @@ router.post('/login2fa', (req,res) => {
       }
     
     })
+    python_process.stderr.on('data',(data) =>{
+      console.error('ERREUR : ', data.toString())
+    })
+    //
+  })
+  python_proc.stderr.on('data',(data) =>{
+    console.error('ERREUR : ', data.toString())
+  })
   })
 //Verif 2FA
 /*
@@ -331,27 +362,51 @@ router.post('/sign', (req,res) => {
               rsaKey = list[1]
               iv = list[0]
               console.log('renvoyé par python :',result.toString())
+              const instance = require('child_process').spawn
+              const process_python2 = instance('python', ['./server/routes/genauth.py'])
+              process_python2.stdout.on('data',(cleauth) =>{
+                console.log('VRAI CLE : '+cleauth)
+                const data_to_pass_in2 = {
+                  data_sent: password+'.'+cleauth,
+                  data_returned: undefined
+                };
+                cleauth = cleauth.toString()
+                const process_python3 = instance('python', ['./server/routes/AES_crypt.py', JSON.stringify(data_to_pass_in2)])
+                process_python3.stdout.on('data',(cleauth_crypt) =>{
+                  const result = cleauth_crypt.toString()
+                  console.log('Fin Python')
+                  const list = result.split('>')
+                  const keycrypt = list[1]
+                  const ivauth = list[0]
+                  console.log('keyauth:'+keycrypt)
+                  console.log('ivatuth:'+ivauth)
+                  sequelize.query(`insert into users(name, email ,password ,admin,city,iv,privatekey,publickey,n,privatekey2fa,ivauth) values ('${name}','${email}','${hash}','0','${city}',"${iv}","${rsaKey}",'${public}','${n}','${keycrypt}','${ivauth}')`).then(function(result) {
+                    console.log('Resultats : ' + result[0])
+                    const accessToken = generateAcessToken({email : email,password:password,userID : result[0]})
+                    const refreshToken = generateRefreshToken({email : email,password:password})
+                    
+        
+                    res.cookie('log',accessToken,{
+                      httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
+                      secure: true, //Uniquement sur https
+                    })
+                    res.cookie('refresh',refreshToken,{
+                      httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
+                      secure: true, //Uniquement sur https
+                    })
+                    res.cookie('Conv',-1,{
+                      httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
+                      secure: true, //Uniquement sur https
+                    })
+                    res.json({message:"connected",status:true,access : accessToken,refresh : refreshToken, id :result[0].id })
+          
+                  })
 
-              sequelize.query(`insert into users(name, email ,password ,admin,city,iv,privatekey,publickey,n) values ('${name}','${email}','${hash}','0','${city}',"${iv}","${rsaKey}",'${public}','${n}')`).then(function(result) {
-                console.log('Resultats : ' + result[0])
-                const accessToken = generateAcessToken({email : email,password:password,userID : result[0]})
-                const refreshToken = generateRefreshToken({email : email,password:password})
-              
-    
-                res.cookie('log',accessToken,{
-                  httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
-                  secure: true, //Uniquement sur https
+                  //
                 })
-                res.cookie('refresh',refreshToken,{
-                  httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
-                  secure: true, //Uniquement sur https
-                })
-                res.cookie('Conv',-1,{
-                  httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
-                  secure: true, //Uniquement sur https
-                })
-                res.json({message:"connected",status:true,access : accessToken,refresh : refreshToken, id :result[0].id })
-      
+              })
+              process_python2.stderr.on('data',(data) =>{
+                console.error('ERREUR : ', data.toString())
               })
             })
           })
@@ -781,5 +836,20 @@ router.post('/passwordverif', (req,res) => {
 })
 })
 
+router.get('/gettemplog', (req,res) => {
+  var password;
+  var email;
+  const token = req.cookies.templog
+  jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
+    if (err) {
+      //console.log('testttttttttt')
+      //req.cookies.log
+      res.json({status:false})
+    }
+    password = user.password
+    email = user.email
+  res.json({password : password, email : email})
+})
+})
 module.exports = router
 
