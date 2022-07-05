@@ -35,7 +35,10 @@ var app = new Vue(
     onconv:-1,
     errormessagelogin:0,
     errormessagelogin2fa:0,
-    listerecherche:[]
+    listerecherche:[],
+    temppassword:"",
+    tempemail:"",
+    tempid:0
   },
   components: 
   {
@@ -84,13 +87,19 @@ var app = new Vue(
       console.log(veriflog.data.status)
       if (veriflog.data.status==false)
         this.errormessagelogin = 1
-      else
+      else{
         this.$router.push('/loginfa');
+        this.temppassword = veriflog.data.password
+        this.tempemail = Login.email
+        /*
+        console.log('temppassword : ' + this.temppassword)
+        console.log('tempemail : ' + this.tempemail)
+        */
+      }
     },
     async loginfa(code){
-      const getinfo = await axios.get('/api/gettemplog')
-      const password = getinfo.data.password
-      const email = getinfo.data.email
+      const password = this.temppassword
+      const email = this.tempemail
       console.log('password :'+password)
       console.log('email :'+email)
       const veriflog = await axios.post('/api/login', {email:email,password:password})

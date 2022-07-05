@@ -836,20 +836,6 @@ router.post('/passwordverif', (req,res) => {
 })
 })
 
-router.get('/gettemplog', (req,res) => {
-  var password;
-  var email;
-  const token = req.cookies.templog
-  jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
-    if (err) {
-      //console.log('testttttttttt')
-      //req.cookies.log
-      res.json({status:false})
-    }
-    password = user.password
-    email = user.email
-  res.json({password : password, email : email})
-})
-})
+
 module.exports = router
 
