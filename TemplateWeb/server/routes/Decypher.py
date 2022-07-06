@@ -8,7 +8,7 @@ def decrypt(key,n,ciphertext):
     return ''.join(plain)
 
 input = ast.literal_eval(sys.argv[1]) # dans input on a une chaine de caractères contenant n + clé privée du receveur + texte à transmettre
-received = input['data_sent'].split(".")
+received = input['data_sent'].split("µ")
 
 text = received[2]
 toremove = "[]"

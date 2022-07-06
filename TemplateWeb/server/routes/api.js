@@ -306,7 +306,7 @@ router.post('/sign', (req,res) => {
             const n = result_list[2]
 
             const data_to_pass_in = {
-              data_sent: password+'.'+private,
+              data_sent: password+'µ'+private,
               data_returned: undefined
             };
 
@@ -381,11 +381,11 @@ router.post('/sendMessage',(req,res) => {
     sequelize.query(`select * from users where userId = '${userReceive}'`).then(function(results) {
       sequelize.query(`select * from users where userId = '${userSender}'`).then(function(resultForSender) {
       const data_to_pass_in = {
-        data_sent: results[0][0].publickey+'.'+results[0][0].n+'.'+messageDecrypt,
+        data_sent: results[0][0].publickey+'µ'+results[0][0].n+'µ'+messageDecrypt,
         data_returned: undefined
       };
       const data_to_pass_in2 = {
-        data_sent: resultForSender[0][0].publickey+'.'+resultForSender[0][0].n+'.'+messageDecrypt,
+        data_sent: resultForSender[0][0].publickey+'µ'+resultForSender[0][0].n+'µ'+messageDecrypt,
         data_returned: undefined
       };
       console.log(data_to_pass_in);
@@ -472,7 +472,7 @@ router.post('/getmessage',(req,res) => {
    
 
       const data_to_pass_in = {
-        data_sent: privatekey+'.'+result[0][0].n+'.'+messageToDecrypt,
+        data_sent: privatekey+'µ'+result[0][0].n+'µ'+messageToDecrypt,
         data_returned: undefined
       };
 
@@ -708,7 +708,7 @@ router.get('/decryptRSAprivate' ,(req,res) => {
     privatekey = results[0][0].privatekey
     iv = results[0][0].iv
     const data_to_pass_in2 = {
-      data_sent: privatekey+'.'+iv+'.'+password,
+      data_sent: privatekey+'µ'+iv+'µ'+password,
       data_returned: undefined
     };
     console.log('Data entrante python : ' + privatekey+'.'+iv+'.'+password)
