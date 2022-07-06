@@ -1,10 +1,15 @@
 <template>
-    <div>
-        <p>Page réservé aux membres connectés</p>
-        <Conversation @submit-password = "submitpassword" @submit-message="submitmessage" :listmessage="listmessage" :onconv="onconv" class="conversation"> </Conversation>
-        <Listemembres @recherche-membre="recherchemembre" @ajout-ami="ajoutAmi" :listemembres="listemembres" :listerecherche="listerecherche"></Listemembres>
-        <Notifami @accept-ami="acceptAmi" :listnotifami="listnotifami"></Notifami>
-        <Sectionami @afficher-conv="afficherConv" :listami="listami"></Sectionami>
+    <div class="container">
+        <div class="left_side">
+            <div class="item">
+                <Listemembres @recherche-membre="recherchemembre" @ajout-ami="ajoutAmi" :listemembres="listemembres" :listerecherche="listerecherche"></Listemembres>
+                <Notifami @accept-ami="acceptAmi" :listnotifami="listnotifami" ></Notifami>
+            </div>
+            <Sectionami @afficher-conv="afficherConv" :listami="listami" class="item"></Sectionami>
+        </div>
+        <div class="right_side">
+            <Conversation @submit-password = "submitpassword" @submit-message="submitmessage" :listmessage="listmessage" :displaydecrypt="displaydecrypt" :onconv="onconv" class="conversation"> </Conversation>
+        </div>
     </div>
 </template>
 
@@ -18,7 +23,10 @@
             listnotifami : Array,
             listami : Array,
             onconv : Number,
-            listerecherche:Array
+            listerecherche:Array,
+            namereceiver:String,
+            namesender:String,
+            displaydecrypt:Boolean
         },
         components:{
             Conversation,
@@ -58,8 +66,34 @@
 </script>
 
 <style scoped>
-.conversation{
-    width: 100vw;
+
+.container{
+    width : 100vw;
+    display: flex;
+}
+
+.left_side{
+    width:25vw;
+    border-right: 1px solid #D4D3E8;
+    display : flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    height: 83vh;
+    
+}
+.right_side{
+    width: 75vw;
+    padding-right: 15px;
+}
+
+.item{
+    background-color: #fafafa;
+    width: 65%;
+    padding: 5%;
+    border-radius: 1rem;
+    align-self: center;
+    box-shadow: 1px 1px 3px rgb(178, 180, 180);
+    margin-bottom: 10vh;
 }
 </style>
 

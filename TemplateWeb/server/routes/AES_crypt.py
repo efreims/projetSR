@@ -6,7 +6,7 @@ import ast
 
 input = ast.literal_eval(sys.argv[1]) # dans input on a une chaine de caractères contenant n + clé publique du receveur + texte à transmettre
 
-templist = input['data_sent'].split(".")
+templist = input['data_sent'].split("µ")
 
 mdp = templist[0]
 

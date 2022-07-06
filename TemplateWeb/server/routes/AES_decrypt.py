@@ -4,7 +4,7 @@ import ast
 import hashlib
 
 input = ast.literal_eval(sys.argv[1]) 
-received = input['data_sent'].split(".")
+received = input['data_sent'].split("µ")
 
 key = received[2]
 iv = received[1]

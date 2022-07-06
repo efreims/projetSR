@@ -3,7 +3,7 @@ import sys
 import ast
 
 input = ast.literal_eval(sys.argv[1])
-templist = input['data_sent'].split(".")
+templist = input['data_sent'].split("µ")
 pv = templist[0]
 code = templist[1]
 

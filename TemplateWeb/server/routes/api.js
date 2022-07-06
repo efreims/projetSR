@@ -7,7 +7,6 @@ var url = require("url");
 // /!\ Créez les dossiers de destination au cas où avant l'upload
 const multer = require('multer')
 const {Sequelize} = require('sequelize');
-
 const sequelize = new Sequelize("bddvigenere","admin","vd}:8Eeq`(q=8`S(", //Veuillez mettre le mot de passe de la base de donnée admin vd}:8Eeq`(q=8`S(
 {
   dialect: "mysql",
@@ -45,6 +44,7 @@ function generateTempToken(user){
 //Pour vérifier que la personne est connectée
 
 
+
 const { status } = require('express/lib/response');
 const res = require('express/lib/response');
 const req = require('express/lib/request')
@@ -76,7 +76,30 @@ router.use((req, res, next) => {
 
   next();
 })
+function resolveAfter2Seconds(id,amiId) {
+  return new Promise(resolve => {
+    sequelize.query(`SELECT * from message join users sender on sender.userId = message.senderId join users receiver on receiver.userId = message.receiverId
+  where receiver.userId='${id}' and sender.userId='${amiId}' UNION SELECT * from message join users sender on sender.userId = message.senderId join users receiver on receiver.userId = message.receiverId
+  where sender.userId='${id}' and receiver.userId='${amiId}';`).then(function(result) {
+      //console.log(resultSender)
+      //console.log("data :"+dataToPush[0][0])
+     
+          resolve(result)
+        })
+        
+  });
+}
 
+function send(message,messageForSender,userSender,userReceive,date) {
+  return new Promise(resolve => {
+    sequelize.query(`insert into message(ciphertext,ciphertextReturn, senderId, receiverId,messageDate) values ('${message}','${messageForSender}','${userSender}','${userReceive}','${date}')`).then(function(result) {
+      sequelize.query(`select MAX(messageId) as id from message `).then(function(iDmessage) {
+       })
+       resolve(result)
+     })
+        
+  });
+}
 router.get('/verifAccess', (req,res) => {
   //console.log(req.cookies)
   //console.log('res : ' + res)
@@ -157,12 +180,8 @@ router.post('/login', (req,res) => {
       bcrypt.compare(password,result[0][0].password, function(err,result2) {
         if (result2){
           console.log('IDDDDDDDD : ' + result[0][0].userId)
-          const templog = generateTempToken({email:email, password:password,id:result[0][0].userId})
-          res.cookie('templog',templog,{
-            httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
-            secure: true, //Uniquement sur https
-          })
-          res.json({status:true,password:password,userID : result[0][0].userId,email:email})
+         
+          res.json({status:true,password:password,userID : result[0][0].userId,email:email,name:result[0][0].name})
   
         }
         else{
@@ -183,11 +202,12 @@ router.post('/login2fa', (req,res) => {
   const password = req.body.password
   const email = req.body.email
   const userID = req.body.userID
+  const name = req.body.name
   sequelize.query(`select privatekey2fa as pv, ivauth as iv from users where userId = '${userID}'`).then(function(result) {
     let privatekey = result[0][0].pv
     const iv = result[0][0].iv
     const data_to_decrypt = {
-      data_sent: privatekey+'.'+iv+'.'+password,
+      data_sent: privatekey+'µ'+iv+'µ'+password,
       data_returned: undefined
     };
     const instance = require('child_process').spawn
@@ -198,7 +218,7 @@ router.post('/login2fa', (req,res) => {
     privatekey2 = privatekey2.replace('\n','')
     console.log('CLE DECRYPTE : ' + privatekey2)
     const data_to_pass_in = {
-      data_sent: privatekey2+'.'+code
+      data_sent: privatekey2+'µ'+code
     };
     const spawner = require('child_process').spawn
     const python_process = spawner('python', ['./server/routes/auth.py', JSON.stringify(data_to_pass_in)])
@@ -208,7 +228,8 @@ router.post('/login2fa', (req,res) => {
       
       if (index!=-1){
         console.log('YESSSSSS')
-        const accessToken = generateAcessToken({email : email,password:password,userID :userID})
+        console.log('name api = '+ name)
+        const accessToken = generateAcessToken({email : email,password:password,userID :userID,name:name})
           const refreshToken = generateRefreshToken({email : email,password:password,userID :userID})
           res.cookie('log',accessToken,{
             httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
@@ -246,7 +267,7 @@ router.post('/login2fa', (req,res) => {
 })
 
 router.post('/refreshToken', (req, res) => {
-  const token=null;
+  let token=null;
   if(req.cookies.refresh)
     token = req.cookies.refresh
   console.log('token : '+token)
@@ -349,7 +370,7 @@ router.post('/sign', (req,res) => {
             console.log('phi : ' + result_list[3])
 
             const data_to_pass_in = {
-              data_sent: password+'.'+private,
+              data_sent: password+'µ'+private,
               data_returned: undefined
             };
 
@@ -367,7 +388,7 @@ router.post('/sign', (req,res) => {
               process_python2.stdout.on('data',(cleauth) =>{
                 console.log('VRAI CLE : '+cleauth)
                 const data_to_pass_in2 = {
-                  data_sent: password+'.'+cleauth,
+                  data_sent: password+'µ'+cleauth,
                   data_returned: undefined
                 };
                 cleauth = cleauth.toString()
@@ -426,7 +447,7 @@ router.post('/sign', (req,res) => {
 
 
 
-router.post('/sendMessage',(req,res) => {
+router.post('/sendMessage',async(req,res) => {
   var id;
   jwt.verify(token,process.env.ACCESS_TOKEN_SECRET, (err,user) =>{//Décrypt le token
     //req.session.userid = user.userid
@@ -450,34 +471,32 @@ router.post('/sendMessage',(req,res) => {
     sequelize.query(`select * from users where userId = '${userReceive}'`).then(function(results) {
       sequelize.query(`select * from users where userId = '${userSender}'`).then(function(resultForSender) {
       const data_to_pass_in = {
-        data_sent: results[0][0].publickey+'.'+results[0][0].n+'.'+messageDecrypt,
+        data_sent: results[0][0].publickey+'µ'+results[0][0].n+'µ'+messageDecrypt,
         data_returned: undefined
       };
       const data_to_pass_in2 = {
-        data_sent: resultForSender[0][0].publickey+'.'+resultForSender[0][0].n+'.'+messageDecrypt,
+        data_sent: resultForSender[0][0].publickey+'µ'+resultForSender[0][0].n+'µ'+messageDecrypt,
         data_returned: undefined
       };
-      console.log(data_to_pass_in);
-      console.log(data_to_pass_in2);
       
       const python_process = spawner('python', ['./server/routes/Cypher.py', JSON.stringify(data_to_pass_in)])
-      python_process.stdout.on('data', (data) => {
+      python_process.stdout.on('data', async(data) => {
         const python_process2 = spawner('python', ['./server/routes/Cypher.py', JSON.stringify(data_to_pass_in2)])
-        python_process2.stdout.on('data', (data2) => {
+        python_process2.stdout.on('data', async(data2) => {
         message = data.toString()
         messageForSender = data2.toString()
-        sequelize.query(`insert into message(ciphertext,ciphertextReturn, senderId, receiverId,messageDate) values ('${message}','${messageForSender}','${userSender}','${userReceive}','${date}')`).then(function(result) {
-          sequelize.query(`select MAX(messageId) as id from message `).then(function(iDmessage) {
-            if(req.body.verifMdpDecrypt==1){
-              //On garde le message decrypté
-              res.json({message:messageDecrypt,date:date,send:true})
-            }
-            else{
-            //Sinon on envoie la version crypté
-            res.json({ message:message,date:date,send:true})
-            }
-          })
-        })
+        console.log("GOOD")
+        var temp = await send(message,messageForSender,userSender,userReceive,date)
+        if(req.body.verifmdp==true){
+          //On garde le message decrypté
+          res.json({message:messageDecrypt,date:date,send:true})
+        }
+        else{
+        //Sinon on envoie la version crypté
+        res.json({ message:message,date:date,send:true})
+        }
+        
+        
       })
       })
        python_process.stderr.on('data',(data) =>{
@@ -490,13 +509,13 @@ router.post('/sendMessage',(req,res) => {
 })
 
 
-router.post('/getmessage',(req,res) => {
+router.post('/getmessage',async(req,res) => {
   var amiId = req.body.id
-  console.log('amiId : ' + amiId)
   var ListMessageDecrypt = []
   const token = req.cookies.log
   const rsakeys = req.cookies.rsakey
   var id=0;
+  
   var test;
   var password;
   var privatekey;
@@ -509,115 +528,108 @@ router.post('/getmessage',(req,res) => {
   })
   const message= req.body.message
   const date = req.body.date
-  sequelize.query(`SELECT * from message join users sender on sender.userId = message.senderId join users receiver on receiver.userId = message.receiverId
-  where receiver.userId='${id}' and sender.userId='${amiId}' UNION SELECT * from message join users sender on sender.userId = message.senderId join users receiver on receiver.userId = message.receiverId
-  where sender.userId='${id}' and receiver.userId='${amiId}';`).then(function(result) {
-      //console.log(resultSender)
-      //console.log("data :"+dataToPush[0][0])
-    if (req.cookies.saveMdpDecrypt && req.cookies.saveMdpDecrypt==1){
-  sequelize.query(`select * from users where userId='${id}'`).then(function(results) {
-    jwt.verify(rsakeys,process.env.ACCESS_TOKEN_SECRET, (err,keys) =>{//Décrypt le token
-      //req.session.userid = user.userid
-      privatekey = keys.privatekey
-    })
-    privatekey = privatekey.replace('\r','')
-    privatekey = privatekey.replace('\n','')
-    results[0][0].n = results[0][0].n.replace('\r','')
-    results[0][0].n = results[0][0].n.replace('\n','')
-    console.log('privatekey : ' + privatekey)
-    
-  
-    //console.log('non local variable = ' + test)
-
-    if (result[0].length==0){
-      res.json({liste:result[0]})
-    }
-    console.log(result[0].length)
-    for (let i=0;i<result[0].length;i++){
-      let messageToDecrypt=""
-    if(result[0][i].senderId==id){
-      messageToDecrypt = result[0][i].ciphertextReturn
-    }
-    else{
-      messageToDecrypt = result[0][i].ciphertext
-    }
-
-  
-   
-
-      const data_to_pass_in = {
-        data_sent: privatekey+'.'+results[0][0].n+'.'+messageToDecrypt,
-        data_returned: undefined
-      };
-
-      //console.log('data passed : ' + data_to_pass_in.data_sent)
-      const spawner = require('child_process').spawn
-      const python_process = spawner('python', ['./server/routes/Decypher.py', JSON.stringify(data_to_pass_in)])
-      python_process.stdout.on('data', (data2) => {
-          var send;
-          if (result[0][i].senderId==id)
-            send=true
-          else 
-            send=false
-          ListMessageDecrypt.push({idMessage:result[0][i].messageId,message:data2.toString(),date:result[0][i].messageDate,send:send})
-        if(ListMessageDecrypt.length==result[0].length){
-            ListMessageDecrypt.sort((a, b) => a.idMessage - b.idMessage);
-            res.json({liste:ListMessageDecrypt})
-        }
-      })
-      python_process.stderr.on('data',(data) =>{
-        console.error('ERREUR : ', data.toString())
-      })
-          //console.log('Liste final' +ListMessageDecrypt)
-          //ListMessageDecrypt.sort((a, b) => b.idMessage - a.idMessage);
-          //console.log('Liste final' +ListMessageDecrypt)
-        //completed();
-        /*
-        function completed(){
-          console.log('i:'+i+'taille tab : ' + result[0].length)
-          console.log('longeur tab' + ListMessageDecrypt.length)
-          if (ListMessageDecrypt.length!=result[0].length-1){
-            console.log('TEST1111111111')
-            return;
-          }
-          else {
-            console.log('finittttttttttttttttt')
-            console.log('tab : ' + ListMessageDecrypt)
-            res.json({liste:ListMessageDecrypt})
-          }
-
-
-        }
-        */
-      
-      
-    }
-
-
+  var result = await resolveAfter2Seconds(id,amiId)
+        if (req.body.verifmdp==true){
+          sequelize.query(`select * from users where userId='${id}'`).then(function(results) {
+            jwt.verify(rsakeys,process.env.ACCESS_TOKEN_SECRET, (err,keys) =>{//Décrypt le token
+              //req.session.userid = user.userid
+              privatekey = keys.privatekey
+            })
+            privatekey = privatekey.replace('\r','')
+            privatekey = privatekey.replace('\n','')
+            results[0][0].n = results[0][0].n.replace('\r','')
+            results[0][0].n = results[0][0].n.replace('\n','')
+            
+          
+            //console.log('non local variable = ' + test)
+            if (result[0].length==0){
+              res.json({liste:result[0]})
+            }
+            for (let i=0;i<result[0].length;i++){
+              let messageToDecrypt=""
+            if(result[0][i].senderId==id){
+              messageToDecrypt = result[0][i].ciphertextReturn
+            }
+            else{
+              messageToDecrypt = result[0][i].ciphertext
+            }
+        
+          
+           
+        
+              const data_to_pass_in = {
+                data_sent: privatekey+'µ'+results[0][0].n+'µ'+messageToDecrypt,
+                data_returned: undefined
+              };
+              console.log(data_to_pass_in)
+        
+              //console.log('data passed : ' + data_to_pass_in.data_sent)
+              const spawner = require('child_process').spawn
+              const python_process = spawner('python', ['./server/routes/Decypher.py', JSON.stringify(data_to_pass_in)])
+              python_process.stdout.on('data', (data2) => {
+                  var send;
+                  if (result[0][i].senderId==id)
+                    send=true
+                  else 
+                    send=false
+                  ListMessageDecrypt.push({idMessage:result[0][i].messageId,message:data2.toString(),date:result[0][i].messageDate,send:send,name:result[0][i].name})
+                if(ListMessageDecrypt.length==result[0].length){
+                    ListMessageDecrypt.sort((a, b) => a.idMessage - b.idMessage);
+                    res.json({liste:ListMessageDecrypt})
+                }
+              })
+              python_process.stderr.on('data',(data) =>{
+                console.error('ERREUR : ', data.toString())
+              })
+                  //console.log('Liste final' +ListMessageDecrypt)
+                  //ListMessageDecrypt.sort((a, b) => b.idMessage - a.idMessage);
+                  //console.log('Liste final' +ListMessageDecrypt)
+                //completed();
+                /*
+                function completed(){
+                  console.log('i:'+i+'taille tab : ' + result[0].length)
+                  console.log('longeur tab' + ListMessageDecrypt.length)
+                  if (ListMessageDecrypt.length!=result[0].length-1){
+                    console.log('TEST1111111111')
+                    return;
+                  }
+                  else {
+                    console.log('finittttttttttttttttt')
+                    console.log('tab : ' + ListMessageDecrypt)
+                    res.json({liste:ListMessageDecrypt})
+                  }
+        
+        
+                }
+                */
+              
+              
+            }
+        
+        
+        })
+            }
+            else{
+              let listefin= [];
+              for (let j=0;j<result[0].length;j++){
+                let send;
+                let messageToSend;
+                if (result[0][j].senderId==id){
+                  send = true
+                  messageToSend = result[0][j].ciphertextReturn
+                }
+                else{
+                  send = false
+                  messageToSend = result[0][j].ciphertext
+                }
+                let objectToAdd = {message:messageToSend,date:result[0][j].messageDate,send:send,name:result[0][j].name}
+                listefin.push(objectToAdd)
+                //if (i=)
+              }
+             res.json({liste:listefin})
+            }
 })
-    }
-    else{
-      console.log('test')
-      let listefin= [];
-      for (let j=0;j<result[0].length;j++){
-        let send;
-        let messageToSend;
-        if (result[0][j].senderId==id){
-          send = true
-          messageToSend = result[0][j].ciphertextReturn
-        }
-        else{
-          send = false
-          messageToSend = result[0][j].ciphertext
-        }
-        let objectToAdd = {message:messageToSend,date:result[0][j].messageDate,send:send}
-        listefin.push(objectToAdd)
-        //if (i=)
-      }
-     res.json({liste:listefin})
-    }
 
-  })
   /*
   sequelize.query(`select * from message`).then(function(result) {
     res.json({liste:result[0]})
@@ -625,25 +637,22 @@ router.post('/getmessage',(req,res) => {
 
   })
   */
-})
 
 
-router.post('/decrypt',(req,res) => {
-    console.log('dans la route')
-    res.cookie('saveMdpDecrypt',1,{//Mettre le password hashé (remplacer le 1)
-      httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
-      secure: true, //Uniquement sur https
-    })
-    //TODO Decrypter les messages
-    //Apres avoir obtenu l'output
-    let decrypt = "chaine decryptée"
-    console.log('décryptée')
-    res.json({listeDescrypt:decrypt})
-})
 
 
 router.get('/verifMdpDecrypt',(req,res) => {
-  res.json({cookiemdp:req.cookies.saveMdpDecrypt})
+  var token = req.cookies.rsakey;
+  jwt.verify(token,process.env.ACCESS_TOKEN_SECRET, (err,user) =>{//Décrypt le token
+    if(err){
+      //return res.sendStatus(401)
+      res.json({verif:false})
+    }
+    else{
+      //req.session.userid = user.userid
+      res.json({verif:true})
+    }
+  })
 })
 
 router.get('/verifCookieLog',(req,res) => {
@@ -651,13 +660,11 @@ router.get('/verifCookieLog',(req,res) => {
   //const token2
   jwt.verify(token,process.env.ACCESS_TOKEN_SECRET, (err,user) =>{//Décrypt le token
     if(err){
-      console.log('PAS BON')
       //return res.sendStatus(401)
       res.json({verif:false})
     }
     else{
       //req.session.userid = user.userid
-      console.log('BON')
       res.json({verif:true})
     }
   })
@@ -665,10 +672,8 @@ router.get('/verifCookieLog',(req,res) => {
 })
 
 router.post('/getusers', (req,res) => {
-  console.log(req.body.id)
   var id=req.body.id
   token = req.cookies.log
-  console.log('userid : '+id)
   sequelize.query(`select users.userId, users.name, users.email, ami.relationId from users left join ami on ami.senderId='${id}' and ami.receiverId=users.userId or ami.receiverId='${id}' and ami.senderId= users.userID where users.userID!='${id}'`).then(function(result) {
     res.json({liste:result[0]})
   })
@@ -679,10 +684,8 @@ router.get('/getusers', (req,res) => {
   token = req.cookies.log
   jwt.verify(token,process.env.ACCESS_TOKEN_SECRET, (err,user) =>{//Décrypt le token
     //req.session.userid = user.userid
-    console.log(user.userID)
     id =  user.userID
   })
-  console.log('userid : '+id)
   sequelize.query(`select users.userId, users.name, users.email, ami.relationId from users left join ami on ami.senderId='${id}' and ami.receiverId=users.userId or ami.receiverId='${id}' and ami.senderId= users.userID where users.userID!='${id}'`).then(function(result) {
     res.json({liste:result[0]})
   })
@@ -693,7 +696,6 @@ router.post('/ajoutami', (req,res) => {
   var idSender = 0
   jwt.verify(token,process.env.ACCESS_TOKEN_SECRET, (err,user) =>{//Décrypt le token
     //req.session.userid = user.userid
-    console.log(user.userID)
     idSender =  user.userID
   })
   var idReceiver = req.body.id
@@ -706,9 +708,7 @@ router.post('/ajoutami', (req,res) => {
 
 router.post('/notifami', (req,res) => {
   var userID = req.body.id
-  console.log('User ID' + userID)
   sequelize.query(`select users.name, ami.relationId from ami join users on ami.senderId=users.userId where receiverId='${userID}' and etat='false'`).then(function(result) {
-    console.log('notif : ' + result[0])
     res.json({listnotif : result[0]})
   })
 })
@@ -721,9 +721,7 @@ router.get('/notifami', (req,res) => {
     //req.session.userid = user.userid
     userID =  user.userID
   })
-  console.log('User ID' + userID)
   sequelize.query(`select users.name, ami.relationId from ami join users on ami.senderId=users.userId where receiverId='${userID}' and etat='false'`).then(function(result) {
-    console.log('notif : ' + result[0])
     res.json({listnotif : result[0]})
   })
 })
@@ -739,7 +737,6 @@ router.post('/acceptAmi', (req,res) => {
 
   })
   sequelize.query(`select users.name as name, ami.receiverId as amiId from ami join users on users.userId=ami.receiverId where senderId=${userID} and etat=true UNION select users.name as name, ami.senderId as amiId from ami join users on users.userId=ami.senderId where receiverId=${userID} and etat=true`).then(function(results) {
-    console.log(results[0])
     res.json({list : results[0]})
   })
 })
@@ -791,18 +788,14 @@ router.get('/decryptRSAprivate' ,(req,res) => {
     privatekey = results[0][0].privatekey
     iv = results[0][0].iv
     const data_to_pass_in2 = {
-      data_sent: privatekey+'.'+iv+'.'+password,
+      data_sent: privatekey+'µ'+iv+'µ'+password,
       data_returned: undefined
     };
-    console.log('Data entrante python : ' + privatekey+'.'+iv+'.'+password)
-    console.log("-----------------------------DEBUT PYTHON------------------------------------------------")
     const instance = require('child_process').spawn
     const python_proc = instance('python', ['./server/routes/AES_decrypt.py', JSON.stringify(data_to_pass_in2)])
     python_proc.stdout.on('data', (data) => { 
       privatekey = data.toString()
-      console.log('local key : ' + privatekey)
       const privateDecypher = generateRSAToken({privatekey : privatekey})
-      console.log('privateDecypher' + privateDecypher)
       res.cookie('rsakey',privateDecypher,{
         httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
         secure: true, //Uniquement sur https
@@ -836,6 +829,33 @@ router.post('/passwordverif', (req,res) => {
 })
 })
 
+router.get('/websocketmessage',(req,res) => {
+  let ws = require('../../bin/www')
+  ws.on("connection", (webSocketClient) => {
+    // send feedback to the incoming connection
+    //webSocketClient.send("The time is: ");
+    
+  });
+})
 
-module.exports = router
+router.post('/getnamereceiver' ,(req,res) => {
+  const idreceiver = req.body.id
+  sequelize.query(`select name from users where userId=${idreceiver}`).then(function(result) {
+    res.json({name : result[0][0].name})
+  })
+})
+
+router.get('/getnamesender', (req,res) => {
+  var name;
+  jwt.verify(token,process.env.ACCESS_TOKEN_SECRET, (err,user) =>{//Décrypt le token
+    //req.session.userid = user.userid
+    name =  user.name
+  })
+  res.json({namesender:name})
+})
+module.exports.Rout = router
+
+
+
+
 

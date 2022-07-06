@@ -31,7 +31,7 @@ def generate_rsa_keys(bits):
     d = number.inverse(e, phi)
     return ((e, n), (d, n),(phi,n))
 
-t = generate_rsa_keys(512)
+t = generate_rsa_keys(128)
 
 
 #print('\nRSA keys:')

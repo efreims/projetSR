@@ -8,6 +8,27 @@
 }
 
 body {
-	background-color: #FAFAFA;
+	/* background-color: #FAFAFA; */
+	background-color: rgb(235, 242, 250);
     	
+}
+
+.nav{
+	height: 7vh;
+	display: flex;
+	justify-content: space-between;
+	background-color: rgb(126, 198, 233);
+	padding: 5px;
+	margin-bottom: 3vh;
+}
+
+.deco{
+	border:none;
+	background-color: inherit;
+	outline: none;
+}
+
+.logo_deco{
+	height: 6vh;
+	cursor: pointer;
 }

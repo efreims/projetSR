@@ -9,7 +9,6 @@ const Sectionami = window.httpVueLoader('./components/Sectionami.vue')
 const Loginfa = window.httpVueLoader('./components/Loginfa.vue')
 
 
-
 const routes = [
   {path: '/', name:'home', component: Home  },
   {path: '/accueil', name:'accueil', component: Accueil  },
@@ -28,7 +27,6 @@ var app = new Vue(
   {
     resultlogin:0,
     listmessage:[],
-    verifMdpDecrypt:0,
     listemembres:[],
     listnotifami:[],
     listami:[],
@@ -38,7 +36,11 @@ var app = new Vue(
     listerecherche:[],
     temppassword:"",
     tempemail:"",
-    tempid:0
+    tempid:0,
+    connection: null,
+    namereceiver : "",
+    namesender:"",
+    displaydecrypt:false
   },
   components: 
   {
@@ -52,7 +54,8 @@ var app = new Vue(
       this.resultlogin = 1;
       const valeurMdpDecrypt = await axios.get('/api/verifMdpDecrypt')
       //console.log(valeurMdpDecrypt.data.cookiemdp)
-      this.verifMdpDecrypt = valeurMdpDecrypt.data.cookiemdp
+      this.displaydecrypt = valeurMdpDecrypt.data.verif
+      console.log('displaydecrypt : '+ this.displaydecrypt)
      // console.log(listMessage.data.liste)
       const listUsers = await axios.get('/api/getusers');
       this.listemembres = []
@@ -68,9 +71,14 @@ var app = new Vue(
         const idConv = await axios.get('/api/getCookieConv')
         this.onconv = parseInt(idConv.data.id)
         this.listmessage = []
+        const namesend = await axios.get('/api/getnamesender')
+        this.namesender = namesend.data.namesender
         if (this.onconv!=-1){
-          const listMessage = await axios.post('/api/getmessage',{id : idConv.data.id})
+          console.log("eee : "+this.displaydecrypt)
+          const listMessage = await axios.post('/api/getmessage',{id : idConv.data.id,verifmdp:this.displaydecrypt})
           this.listmessage.push(listMessage.data.liste)
+          const name = await axios.post('/api/getnamereceiver',{id : this.onconv})
+          this.namereceiver = name.data.name
         }
         }
         else{
@@ -80,10 +88,11 @@ var app = new Vue(
   },
   methods: 
   {
-   
     async login(Login){
       console.log(Login)
       const veriflog = await axios.post('/api/login', {email:Login.email,password:Login.password,first:true})
+      console.log('named : ' + veriflog.data.name)
+      this.namesender = veriflog.data.name
       console.log(veriflog.data.status)
       if (veriflog.data.status==false)
         this.errormessagelogin = 1
@@ -100,12 +109,13 @@ var app = new Vue(
     async loginfa(code){
       const password = this.temppassword
       const email = this.tempemail
+      const name = this.namesender
       console.log('password :'+password)
       console.log('email :'+email)
       const veriflog = await axios.post('/api/login', {email:email,password:password})
       const userID = veriflog.data.userID
       if (veriflog.data.status==true){
-      const res =  await axios.post('/api/login2fa', {code : code,password : password,email : email,userID : userID})
+      const res =  await axios.post('/api/login2fa', {code : code,password : password,email : email,userID : userID,name : this.namesender})
       
       if (res.data.status==true){
         const listUsers = await axios.post('/api/getusers',{id :res.data.id });
@@ -154,7 +164,6 @@ var app = new Vue(
     },
     async deconnexion(){
       const res = await axios.get('api/deco')
-      this.verifMdpDecrypt = 0
       console.log(res.data.status)
       this.$router.push('/');
       this.resultlogin = 0
@@ -184,21 +193,20 @@ var app = new Vue(
       const heures = date.getHours()
       const minutes = date.getMinutes()
       const fulldate = day+ '/'+ month + '/' + year + ' ' + heures + ':' + minutes
-      const res = await axios.post('/api/sendMessage', {message:message,date:fulldate,verifMdpDecrypt:this.verifMdpDecrypt})
+      const res = await axios.post('/api/sendMessage', {message:message,date:fulldate,verifmdp:this.displaydecrypt})
       this.listmessage[0].push(res.data)
     },
     async submitpassword(password){
       const verifmdp = await axios.post('/api/passwordverif',{password : password})
       if (verifmdp.data.status==true){
+        this.displaydecrypt = true
         console.log("mdp OK")
         console.log(this.listmessage)
         const test = await axios.get('/api/decryptRSAprivate')
-        const res = await axios.post('/api/decrypt', {listCrypt : this.listmessage})
-        //this.listmessage = res.data.listeDescrypt
-        this.verifMdpDecrypt=1
         const idConv = await axios.get('/api/getCookieConv')
         this.onconv = parseInt(idConv.data.id)
-        const listMessage = await axios.post('/api/getmessage',{id : this.onconv})
+        console.log("zzzz : "+this.displaydecrypt)
+        const listMessage = await axios.post('/api/getmessage',{id : this.onconv,verifmdp:this.displaydecrypt})
         this.listmessage = []
         console.log("Sur la conv : ")
         this.listmessage.push(listMessage.data.liste)
@@ -244,6 +252,8 @@ var app = new Vue(
       const veriflog = await axios.get('/api/verifCookieLog')
       if (veriflog.data.verif==true)
       {
+        const name = await axios.post('/api/getnamereceiver',{id : amiId.id})
+        this.namereceiver = name.data.name
         console.log('dedans')
         console.log('dedans2 : ' + amiId.id)
         const listMessage = await axios.post('/api/getmessage',{id : amiId.id})
@@ -267,5 +277,6 @@ var app = new Vue(
     }
   }
     
-  }
+  },
+
 })

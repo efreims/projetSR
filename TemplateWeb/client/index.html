@@ -16,7 +16,10 @@
   <body>
     <div id="app">
         <router-link to='/'></router-link>
-        <button v-if="resultlogin==1" @click="deconnexion">Deconnexion</button>
+        <div class="nav" v-if="resultlogin==1">
+          <img class="logo" src="/ressources/VIGENEREBLANC.png" alt="">
+          <button @click="deconnexion" class="deco"><img src="ressources/deco.png" class="logo_deco"></button>
+        </div>
       </header>
       <main>
         <router-view 
@@ -29,6 +32,9 @@
         :errormessagelogin="errormessagelogin"
         :errormessagelogin2fa="errormessagelogin2fa"
         :listerecherche="listerecherche"
+        :namereceiver="namereceiver"
+        :namesender="namesender"
+        :displaydecrypt="displaydecrypt"
         @return-accueil="returnAccueil"
         @submit-message = "submitmessage"
         @submit-password="submitpassword"
