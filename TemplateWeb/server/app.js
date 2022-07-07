@@ -11,7 +11,7 @@ const app = express()
 app.use(logger('dev'))
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
-app.use(cookieParser())
+app.use(cookieParser({domain: '.ec2-18-169-209-188.eu-west-2.compute.amazonaws.com'}))
 app.use(session({ secret: 'grehjznejzkhgjrez', saveUninitialized: false, resave: false }))
 app.use(express.static(path.join(__dirname, '../client')))
 
