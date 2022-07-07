@@ -1,14 +1,14 @@
 <template>
     <div class="container">
-        {{displaydecrypt}}
-        <div class="contactOn">
+        <!-- {{displaydecrypt}} -->
+        <div class="contactOn" v-if="displaydecrypt">
+            <img src="../ressources/contact.PNG" alt="">
             <p>{{namereceiver}}</p>
-            <p>{{namesender}}</p>
         </div>
-         <p v-if="onconv==-1" class="temp">
+         <p v-if="onconv==-1 && displaydecrypt" class="temp">
             Veuillez selectionner une conversation
         </p>
-        <div class="conv_container">
+        <div class="conv_container" v-if="displaydecrypt">
             <div v-for="(message,index) in listmessage[0]" :key="index" class="conv">
                 <div class="messageLeft" v-bind:class="{ messageRight : !message.send}">
                     <p class="message"  v-bind:class="{ messageL : !message.send}"> {{message.message}}</p>
@@ -17,12 +17,12 @@
             </div> 
         </div>
         <div class="form_end">
-            <form v-if="onconv!=-1" @submit.prevent="submitmessage">
+            <form v-if="onconv!=-1 && displaydecrypt" @submit.prevent="submitmessage">
                 <input type="txt" placeholder="votre message" v-model="messagesend">
                 <button>Envoyer</button>
             </form>
 
-            <form v-if="onconv!=-1" @submit.prevent="submitpassword">
+            <form v-if="!displaydecrypt" @submit.prevent="submitpassword">
                 <input type="password" placeholder="Tapez votre mdp" v-model="passwordDecrypt">
                 <button>Envoyer</button>
             </form>
@@ -71,12 +71,29 @@
     flex-direction : column;
     width: 100%;
     height: 100%;
-    padding-top : 15px;
+    padding-top : 0px;
     padding-bottom : 15px;
     padding-left : 15px;
     justify-content: flex-start;
     /* align-content: center; */
 }
+
+.contactOn{
+    display : flex;
+    height : 3vw;
+    align-items: center;
+    border-bottom : 1px solid #D4D3E8;
+}
+
+img{
+    width : 2vw;
+    height : 2vw;
+    margin-right : 1vw;
+
+}
+
+
+
 input {
 	border: none;
 	border-bottom: 2px solid #D1D1D4;
@@ -130,8 +147,9 @@ form{
     display: flex;
     flex-direction: column;
     height: 70vh;
+    margin-top : 10px;
     overflow-y: scroll;
-    scrollbar-color: rebeccapurple green;
+    /* scrollbar-color: rebeccapurple green; */
     scrollbar-width: thin;
 }
 

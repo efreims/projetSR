@@ -3,7 +3,7 @@
         <div class="screen">
             <div class="screen__content">
                 <form v-if="log==true" class="login" @submit.prevent="connexion">
-                    <h1>test</h1>
+				<h1><img src="../ressources/vigenere.png" alt=""></h1>
                     <div class="login__field">
 					    <i class="login__icon fas fa-user"></i>
 					    <input type="text" class="login__input" placeholder="Email" v-model="email">
@@ -18,7 +18,7 @@
 				    </button>
                 </form>
                 <form v-if="log==false" class="login" @submit.prevent="inscription">
-                    <h1>test</h1>
+                    <h1><img src="../ressources/vigenere.png" alt=""></h1>
                     <div class="login__field">
 					    <input type="text" class="login__input" placeholder="Nom" v-model="name">
 				    </div>
@@ -95,6 +95,11 @@
 </script>
 
 <style scoped>
+
+img{
+	width:150px;
+}
+
 h1{
     color: #1270AB;
 }
@@ -102,7 +107,7 @@ h1{
 	display: flex;
 	align-items: center;
 	justify-content: center;
-    min-height: 100vh;
+    min-height: 90vh;
 }
 .screen {		
 	background: linear-gradient(90deg, #1270AB, #0E3B5A);		
@@ -165,7 +170,7 @@ h1{
 .login {
 	width: 320px;
 	padding: 30px;
-	padding-top: 70px;
+	padding-top: 50px;
 }
 .login__field {
 	padding: 20px 0px;	

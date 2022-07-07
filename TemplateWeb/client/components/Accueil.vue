@@ -8,7 +8,7 @@
             <Sectionami @afficher-conv="afficherConv" :listami="listami" class="item"></Sectionami>
         </div>
         <div class="right_side">
-            <Conversation @submit-password = "submitpassword" @submit-message="submitmessage" :listmessage="listmessage" :displaydecrypt="displaydecrypt" :onconv="onconv" class="conversation"> </Conversation>
+            <Conversation @submit-password = "submitpassword" @submit-message="submitmessage" :listmessage="listmessage" :displaydecrypt="displaydecrypt" :onconv="onconv" :namesender="namesender" :namereceiver="namereceiver" class="conversation"> </Conversation>
         </div>
     </div>
 </template>
@@ -78,12 +78,13 @@
     display : flex;
     flex-direction: column;
     justify-content: flex-start;
-    height: 83vh;
+    height: 80vh;
     
 }
 .right_side{
     width: 75vw;
     padding-right: 15px;
+    height: 90vh;
 }
 
 .item{

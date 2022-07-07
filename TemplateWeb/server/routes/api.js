@@ -503,13 +503,14 @@ router.post('/sendMessage',async(req,res) => {
         var temp = await send(message,messageForSender,userSender,userReceive,date)
         if(req.body.verifmdp==true){
           //On garde le message decrypté
-          res.json({message:messageDecrypt,date:date,send:true})
+          res.json({message:messageDecryptstart,date:date,send:true})
         }
         else{
         //Sinon on envoie la version crypté
         res.json({ message:messageForSender,date:date,send:true})
         }
-        
+      
+
         
       })
       })

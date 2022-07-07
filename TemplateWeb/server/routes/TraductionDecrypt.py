@@ -13,7 +13,6 @@ temp2 = ''.join(temp)
 temp3 = []
 temp4 = []
 temp5 = []
-varverif = temp[0] + temp[1]
 
    
 for i in range (len(temp2)):
