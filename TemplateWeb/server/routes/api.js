@@ -453,7 +453,7 @@ router.post('/sendMessage',async(req,res) => {
     //req.session.userid = user.userid
     id =  user.userID
   })
-  var messageDecrypt= req.body.message
+  var messageDecryptstart= req.body.message
   const date = req.body.date
   const spawner = require('child_process').spawn
   token = req.cookies.log
@@ -470,7 +470,21 @@ router.post('/sendMessage',async(req,res) => {
 
     sequelize.query(`select * from users where userId = '${userReceive}'`).then(function(results) {
       sequelize.query(`select * from users where userId = '${userSender}'`).then(function(resultForSender) {
-      const data_to_pass_in = {
+        const data_to_pass = {
+          data_sent: messageDecryptstart,
+          data_returned: undefined
+        };
+        const python_process_trad = spawner('python', ['./server/routes/TraductionCrypt.py', JSON.stringify(data_to_pass)])
+        python_process_trad.stdout.on('data', async(datatemp) => {
+          datatemp = datatemp.toString()
+          datatemp = datatemp.replace('[','')
+          datatemp = datatemp.replace(/'/g,'')
+          datatemp = datatemp.replace(']','')
+          datatemp = datatemp.replace('\r','')
+          datatemp = datatemp.replace('\n','')
+        let messageDecrypt = datatemp
+        console.log(messageDecrypt)
+        const data_to_pass_in = {
         data_sent: results[0][0].publickey+'µ'+results[0][0].n+'µ'+messageDecrypt,
         data_returned: undefined
       };
@@ -478,7 +492,7 @@ router.post('/sendMessage',async(req,res) => {
         data_sent: resultForSender[0][0].publickey+'µ'+resultForSender[0][0].n+'µ'+messageDecrypt,
         data_returned: undefined
       };
-      
+      console.log('pute : ' +messageDecrypt)
       const python_process = spawner('python', ['./server/routes/Cypher.py', JSON.stringify(data_to_pass_in)])
       python_process.stdout.on('data', async(data) => {
         const python_process2 = spawner('python', ['./server/routes/Cypher.py', JSON.stringify(data_to_pass_in2)])
@@ -493,13 +507,17 @@ router.post('/sendMessage',async(req,res) => {
         }
         else{
         //Sinon on envoie la version crypté
-        res.json({ message:message,date:date,send:true})
+        res.json({ message:messageForSender,date:date,send:true})
         }
         
         
       })
       })
        python_process.stderr.on('data',(data) =>{
+          console.error('ERREUR : ', data.toString())
+      })
+        })
+        python_process_trad.stderr.on('data',(data) =>{
           console.error('ERREUR : ', data.toString())
       })
     })
@@ -555,8 +573,9 @@ router.post('/getmessage',async(req,res) => {
             }
         
           
-           
-        
+            messageToDecrypt = messageToDecrypt.replace('\r','')
+            messageToDecrypt = messageToDecrypt.replace('\n','')
+            
               const data_to_pass_in = {
                 data_sent: privatekey+'µ'+results[0][0].n+'µ'+messageToDecrypt,
                 data_returned: undefined
@@ -567,17 +586,31 @@ router.post('/getmessage',async(req,res) => {
               const spawner = require('child_process').spawn
               const python_process = spawner('python', ['./server/routes/Decypher.py', JSON.stringify(data_to_pass_in)])
               python_process.stdout.on('data', (data2) => {
+                console.log('testteeeeee'+data2.toString())
+                //data2 = data2.toString
+                let vv = data2.toString()
+                vv = vv.replace('[','')
+                vv = vv.replace(/'/g,'')
+                vv = vv.replace(']','')
+                console.log('huuuu : ' + vv)
+                const python_process5 = spawner('python', ['./server/routes/TraductionDecrypt.py', JSON.stringify(vv)])
+                python_process5.stdout.on('data', (data3) => {
+                  console.log(data3.toString())
                   var send;
                   if (result[0][i].senderId==id)
                     send=true
                   else 
                     send=false
-                  ListMessageDecrypt.push({idMessage:result[0][i].messageId,message:data2.toString(),date:result[0][i].messageDate,send:send,name:result[0][i].name})
+                  ListMessageDecrypt.push({idMessage:result[0][i].messageId,message:data3.toString(),date:result[0][i].messageDate,send:send,name:result[0][i].name})
                 if(ListMessageDecrypt.length==result[0].length){
                     ListMessageDecrypt.sort((a, b) => a.idMessage - b.idMessage);
                     res.json({liste:ListMessageDecrypt})
                 }
               })
+              python_process5.stderr.on('data',(data) =>{
+                console.error('ERREUR : ', data.toString())
+              })
+            })
               python_process.stderr.on('data',(data) =>{
                 console.error('ERREUR : ', data.toString())
               })
