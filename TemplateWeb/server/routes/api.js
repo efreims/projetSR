@@ -133,31 +133,31 @@ else{
 router.get('/deco',(req,res) => {
   res.cookie('log','',{
     httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
-    secure: true, //Uniquement sur https
+    secure: false, //Uniquement sur https
     domain: '.ec2-18-169-209-188.eu-west-2.compute.amazonaws.com'
   })
   res.clearCookie('log')
   res.cookie('refresh','',{
     httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
-    secure: true, //Uniquement sur https
+    secure: false, //Uniquement sur https
     domain: '.ec2-18-169-209-188.eu-west-2.compute.amazonaws.com'
   })
   res.clearCookie('refresh')
   res.cookie('saveMdpDecrypt',0,{
     httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
-    secure: true, //Uniquement sur https
+    secure: false, //Uniquement sur https
     domain: '.ec2-18-169-209-188.eu-west-2.compute.amazonaws.com'
   })
   res.clearCookie('saveMdpDecrypt')
   res.cookie('Conv',-1,{
     httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
-    secure: true, //Uniquement sur https
+    secure: false, //Uniquement sur https
     domain: '.ec2-18-169-209-188.eu-west-2.compute.amazonaws.com'
   })
   res.clearCookie('Conv')
   res.cookie('rsakey','',{
     httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
-    secure: true, //Uniquement sur https
+    secure: false, //Uniquement sur https
     domain: '.ec2-18-169-209-188.eu-west-2.compute.amazonaws.com'
   })
   res.clearCookie('rsakey')
@@ -239,17 +239,17 @@ router.post('/login2fa', (req,res) => {
           const refreshToken = generateRefreshToken({email : email,password:password,userID :userID})
           res.cookie('log',accessToken,{
             httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
-            secure: true, //Uniquement sur https
+            secure: false, //Uniquement sur https
             domain: '.ec2-18-169-209-188.eu-west-2.compute.amazonaws.com'
           })
           res.cookie('refresh',refreshToken,{
             httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
-            secure: true, //Uniquement sur https
+            secure: false, //Uniquement sur https
             domain: '.ec2-18-169-209-188.eu-west-2.compute.amazonaws.com'
           })
           res.cookie('Conv',-1,{
             httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
-            secure: true, //Uniquement sur https
+            secure: false, //Uniquement sur https
             domain: '.ec2-18-169-209-188.eu-west-2.compute.amazonaws.com'
           })
 
@@ -300,7 +300,7 @@ router.post('/refreshToken', (req, res) => {
     const refreshedToken = generateAcessToken(user);
     res.cookie('log',refreshedToken,{
       httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
-      secure: true, //Uniquement sur https
+      secure: false, //Uniquement sur https
       domain: '.ec2-18-169-209-188.eu-west-2.compute.amazonaws.com'
     })
     res.json({
@@ -318,7 +318,7 @@ router.get('/refreshToken', (req, res) => {
 router.post('/retourLogin', (req,res) => {
   res.cookie('retour','true',{
     httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
-    secure: true, //Uniquement sur https
+    secure: false, //Uniquement sur https
     domain: '.ec2-18-169-209-188.eu-west-2.compute.amazonaws.com'
   })
   res.send({message:"retour"})
@@ -328,17 +328,17 @@ router.get('/retourLogin', (req,res) => {
   if (req.cookies.retour && req.cookies.retour=='true'){
     res.cookie('retour','',{
       httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
-      secure: true, //Uniquement sur https
+      secure: false, //Uniquement sur https
       domain: '.ec2-18-169-209-188.eu-west-2.compute.amazonaws.com'
     })
     res.cookie('log','',{
       httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
-      secure: true, //Uniquement sur https
+      secure: false, //Uniquement sur https
       domain: '.ec2-18-169-209-188.eu-west-2.compute.amazonaws.com'
     })
     res.cookie('refresh','',{
       httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
-      secure: true, //Uniquement sur https
+      secure: false, //Uniquement sur https
       domain: '.ec2-18-169-209-188.eu-west-2.compute.amazonaws.com'
     })
     res.send({status:true})
@@ -423,17 +423,17 @@ router.post('/sign', (req,res) => {
         
                     res.cookie('log',accessToken,{
                       httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
-                      secure: true, //Uniquement sur https
+                      secure: false, //Uniquement sur https
                       domain: '.ec2-18-169-209-188.eu-west-2.compute.amazonaws.com'
                     })
                     res.cookie('refresh',refreshToken,{
                       httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
-                      secure: true, //Uniquement sur https
+                      secure: false, //Uniquement sur https
                       domain: '.ec2-18-169-209-188.eu-west-2.compute.amazonaws.com'
                     })
                     res.cookie('Conv',-1,{
                       httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
-                      secure: true, //Uniquement sur https
+                      secure: false, //Uniquement sur https
                       domain: '.ec2-18-169-209-188.eu-west-2.compute.amazonaws.com'
                     })
                     res.json({message:"connected",status:true,access : accessToken,refresh : refreshToken, id :result[0].id,code:cleauth})
@@ -815,7 +815,7 @@ router.post('/changeCookieConv', (req,res) => {
   var idAmi = req.body.id
   res.cookie('Conv',idAmi.id,{//Mettre le password hashé (remplacer le 1)
     httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
-    secure: true, //Uniquement sur https
+    secure: false, //Uniquement sur https
     domain: '.ec2-18-169-209-188.eu-west-2.compute.amazonaws.com'
   })
   res.json({message:"Cookie changé"})
@@ -850,7 +850,7 @@ router.get('/decryptRSAprivate' ,(req,res) => {
       const privateDecypher = generateRSAToken({privatekey : privatekey})
       res.cookie('rsakey',privateDecypher,{
         httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
-        secure: true, //Uniquement sur https
+        secure: false, //Uniquement sur https
         domain: '.ec2-18-169-209-188.eu-west-2.compute.amazonaws.com'
       })
       res.json({message:"finit"})
