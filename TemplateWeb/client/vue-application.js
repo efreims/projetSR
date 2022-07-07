@@ -7,12 +7,14 @@ const Listemembres = window.httpVueLoader('./components/Listemembres.vue')
 const Notifami = window.httpVueLoader('./components/Notifami.vue')
 const Sectionami = window.httpVueLoader('./components/Sectionami.vue')
 const Loginfa = window.httpVueLoader('./components/Loginfa.vue')
+const Mdpfa = window.httpVueLoader('./components/Mdpfa.vue')
 
 
 const routes = [
   {path: '/', name:'home', component: Home  },
   {path: '/accueil', name:'accueil', component: Accueil  },
-  {path: '/loginfa', name:'Loginfa', component: Loginfa }
+  {path: '/loginfa', name:'Loginfa', component: Loginfa },
+  {path: '/mdpfa', name:'Mdpfa', component: Mdpfa }
 ]
 
 const router = new VueRouter({
@@ -40,7 +42,8 @@ var app = new Vue(
     connection: null,
     namereceiver : "",
     namesender:"",
-    displaydecrypt:false
+    displaydecrypt:false,
+    code :""
   },
   components: 
   {
@@ -118,9 +121,9 @@ var app = new Vue(
       const res =  await axios.post('/api/login2fa', {code : code,password : password,email : email,userID : userID,name : this.namesender})
       
       if (res.data.status==true){
-        const valeurMdpDecrypt = await axios.get('/api/verifMdpDecrypt')
+        //const valeurMdpDecrypt = await axios.get('/api/verifMdpDecrypt')
         //console.log(valeurMdpDecrypt.data.cookiemdp)
-        this.displaydecrypt = valeurMdpDecrypt.data.verif
+        // this.displaydecrypt = valeurMdpDecrypt.data.verif
         const listUsers = await axios.post('/api/getusers',{id :res.data.id });
         this.listemembres = []
         this.listemembres.push(listUsers.data.liste);
@@ -192,6 +195,7 @@ var app = new Vue(
       console.log(Sign)
       const res = await axios.post('/api/sign', Sign)
       if (res.data.status==true){
+        this.code = res.data.code
         axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.access}`;
         refreshToken = res.data.refresh
         this.resultlogin = 1;
@@ -199,8 +203,14 @@ var app = new Vue(
         this.listemembres = []
         this.listemembres.push(listUsers.data.liste);
         this.listemembres = this.listemembres[0]
-        this.$router.push('/accueil');
+        this.$router.push('/mdpfa');
       }
+    },
+    async gotoaccueil(){
+      if (this.resultlogin = 1)
+        this.$router.push('/accueil');
+      else
+      this.$router.push('/');
     },
     async submitmessage(message){
       const date = new Date()

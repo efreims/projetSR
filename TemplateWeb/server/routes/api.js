@@ -214,9 +214,10 @@ router.post('/login2fa', (req,res) => {
     const python_proc = instance('python', ['./server/routes/AES_decrypt.py', JSON.stringify(data_to_decrypt)])
     python_proc.stdout.on('data', (data) => { 
     let privatekey2= data.toString()
-    privatekey2 = privatekey2.replace('\r','')
-    privatekey2 = privatekey2.replace('\n','')
+    privatekey2 = privatekey2.replace(/\r/g,'')
+    privatekey2 = privatekey2.replace(/\n/g,'')
     console.log('CLE DECRYPTE : ' + privatekey2)
+    console.log('code : ' + code)
     const data_to_pass_in = {
       data_sent: privatekey2+'µ'+code
     };
@@ -419,7 +420,7 @@ router.post('/sign', (req,res) => {
                       httpOnly: true, // Interdit l'utilisation du cookie côté client => impossible de le récupérer donc protégé des failles xss
                       secure: true, //Uniquement sur https
                     })
-                    res.json({message:"connected",status:true,access : accessToken,refresh : refreshToken, id :result[0].id })
+                    res.json({message:"connected",status:true,access : accessToken,refresh : refreshToken, id :result[0].id,code:cleauth})
           
                   })
 
